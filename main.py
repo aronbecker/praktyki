@@ -22,6 +22,8 @@ class TournamentManager(QWidget):
         show_tournaments_button.clicked.connect(self.show_tournaments)
 
         # Ustawienia okna
+        #komentarz
+        
         self.setGeometry(300, 300, 300, 150)
         self.setWindowTitle("Menadżer Turniejów")
         self.show()
