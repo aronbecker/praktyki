@@ -26,6 +26,10 @@ class TournamentManager(QWidget):
         self.setWindowTitle("Menadżer Turniejów")
         self.show()
 
+        self.setGeometry(300, 300, 300, 150)
+        self.setWindowTitle("Menadżer Turniejów")
+        self.show()
+
     def add_tournament(self):
         # Tutaj będzie kod dodający turniej
         QMessageBox.information(self, "Dodaj Turniej", "Funkcja dodawania turnieju")

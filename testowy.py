@@ -1,0 +1,3 @@
+import sys
+
+#jakiś komentarz
