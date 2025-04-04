@@ -10,7 +10,7 @@ class TournamentManager(QWidget):
         # Przyciski
         add_tournament_button = QPushButton("Dodaj Turniej", self)
         show_tournaments_button = QPushButton("Wyświetl Turnieje", self)
-
+        #nie wiem
         # Układ
         layout = QVBoxLayout()
         layout.addWidget(add_tournament_button)
@@ -22,6 +22,8 @@ class TournamentManager(QWidget):
         show_tournaments_button.clicked.connect(self.show_tournaments)
 
         # Ustawienia okna
+        #komentarz
+        
         self.setGeometry(300, 300, 300, 150)
         self.setWindowTitle("Menadżer Turniejów")
         self.show()
