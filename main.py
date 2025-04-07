@@ -1,143 +1,191 @@
 import sys
-import mysql.connector
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QMessageBox, QLineEdit, QFormLayout, QLabel
+import random
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QPushButton, QVBoxLayout, QMessageBox,
+    QLineEdit, QFormLayout, QLabel, QTableWidget, QTableWidgetItem
+)
+from PyQt5.QtCore import Qt
+from zawodnicy import Zawodnicy
 
-class Zawodnicy:
-    def __init__(self, host="127.0.0.1", user="root", password="", db_name="turniejedb"):
-        self.host = host
-        self.user = user
-        self.password = password
-        self.db_name = db_name
 
-    def connect(self):
-        """Nawiązanie połączenia z bazą danych MySQL."""
-        return mysql.connector.connect(
-            host=self.host,
-            user=self.user,
-            password=self.password,
-            database=self.db_name
-        )
+class AddPlayerWindow(QWidget):
+    def __init__(self, zawodnicy):
+        super().__init__()
+        self.zawodnicy = zawodnicy
+        self.setWindowTitle("Dodaj Zawodnika")
+        self.setGeometry(450, 300, 350, 200)
+        self.init_ui()
 
-    def create_table(self):
-        """Tworzenie tabeli Zawodnicy w bazie danych, jeśli jeszcze nie istnieje."""
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS zawodnicy (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                imie VARCHAR(100) NOT NULL,
-                nazwisko VARCHAR(100) NOT NULL,
-                turniej_id INT,
-                FOREIGN KEY (turniej_id) REFERENCES turnieje(id) ON DELETE CASCADE
-            )
-        ''')
-        conn.commit()
-        conn.close()
+    def init_ui(self):
+        layout = QFormLayout()
 
-    def add_zawodnik(self, imie, nazwisko, turniej_id):
-        """Dodawanie zawodnika do tabeli Zawodnicy."""
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO zawodnicy (imie, nazwisko, turniej_id)
-            VALUES (%s, %s, %s)
-        ''', (imie, nazwisko, turniej_id))
-        conn.commit()
-        conn.close()
+        self.imie_input = QLineEdit()
+        self.nazwisko_input = QLineEdit()
+        self.turniej_input = QLineEdit()
 
-    def show_zawodnicy(self):
-        """Wyświetlanie wszystkich zawodników w tabeli."""
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM zawodnicy')
-        zawodnicy = cursor.fetchall()
-        conn.close()
-        return zawodnicy
+        layout.addRow(QLabel("Imię:"), self.imie_input)
+        layout.addRow(QLabel("Nazwisko:"), self.nazwisko_input)
+        layout.addRow(QLabel("Turniej ID:"), self.turniej_input)
+
+        add_button = QPushButton("Dodaj")
+        add_button.clicked.connect(self.save_player)
+        layout.addWidget(add_button)
+
+        self.setLayout(layout)
+
+    def save_player(self):
+        imie = self.imie_input.text()
+        nazwisko = self.nazwisko_input.text()
+        turniej_id = self.turniej_input.text()
+
+        try:
+            turniej_id = int(turniej_id)
+            self.zawodnicy.add_zawodnik(imie, nazwisko, turniej_id)
+            QMessageBox.information(self, "Sukces", "Zawodnik dodany pomyślnie!")
+            self.imie_input.clear()
+            self.nazwisko_input.clear()
+            self.turniej_input.clear()
+        except ValueError:
+            QMessageBox.warning(self, "Błąd", "Podaj poprawne ID turnieju.")
+
+
+class ShowPlayersWindow(QWidget):
+    def __init__(self, zawodnicy):
+        super().__init__()
+        self.zawodnicy = zawodnicy
+        self.setWindowTitle("Lista Zawodników")
+        self.setGeometry(450, 300, 600, 400)
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        self.table = QTableWidget()
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(["ID", "Imię", "Nazwisko", "Turniej ID", "Punkty"])
+
+        refresh_button = QPushButton("Odśwież")
+        refresh_button.clicked.connect(self.load_players)
+
+        save_button = QPushButton("Zapisz zmiany punktów")
+        save_button.clicked.connect(self.save_points)
+
+        random_button = QPushButton("Wylosuj Punkty")
+        random_button.clicked.connect(self.randomize_points)
+
+        layout.addWidget(self.table)
+        layout.addWidget(refresh_button)
+        layout.addWidget(save_button)
+        layout.addWidget(random_button)
+
+        self.setLayout(layout)
+        self.load_players()
+
+    def load_players(self):
+        zawodnicy = self.zawodnicy.show_zawodnicy()
+        zawodnicy.sort(key=lambda z: z[3])  # Sortuj po turniej_id
+
+        self.table.setRowCount(0)
+        current_turniej = None
+        row_counter = 0
+
+        for zawodnik in zawodnicy:
+            id_, imie, nazwisko, turniej_id, punkty = zawodnik
+
+            if turniej_id != current_turniej:
+                self.table.insertRow(row_counter)
+                item = QTableWidgetItem(f"=== Turniej ID: {turniej_id} ===")
+                item.setFlags(Qt.ItemIsEnabled)
+                item.setTextAlignment(Qt.AlignCenter)
+                self.table.setSpan(row_counter, 0, 1, 5)
+                self.table.setItem(row_counter, 0, item)
+                row_counter += 1
+                current_turniej = turniej_id
+
+            self.table.insertRow(row_counter)
+            self.table.setItem(row_counter, 0, QTableWidgetItem(str(id_)))
+            self.table.setItem(row_counter, 1, QTableWidgetItem(imie))
+            self.table.setItem(row_counter, 2, QTableWidgetItem(nazwisko))
+            self.table.setItem(row_counter, 3, QTableWidgetItem(str(turniej_id)))
+
+            punkty_item = QTableWidgetItem(str(punkty))
+            punkty_item.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)
+            self.table.setItem(row_counter, 4, punkty_item)
+
+            row_counter += 1
+
+    def save_points(self):
+        rows = self.table.rowCount()
+        updated = 0
+
+        for i in range(rows):
+            id_item = self.table.item(i, 0)
+            punkty_item = self.table.item(i, 4)
+
+            if id_item and id_item.text().isdigit():
+                zawodnik_id = int(id_item.text())
+                try:
+                    nowe_punkty = int(punkty_item.text())
+                    self.zawodnicy.update_punkty(zawodnik_id, nowe_punkty)
+                    updated += 1
+                except ValueError:
+                    continue  # pomiń niepoprawne wartości
+
+        QMessageBox.information(self, "Zaktualizowano", f"Punkty zaktualizowane dla {updated} zawodników.")
+
+    def randomize_points(self):
+        zawodnicy = self.zawodnicy.show_zawodnicy()
+        for z in zawodnicy:
+            losowe_punkty = random.randint(0, 1000)
+            self.zawodnicy.update_punkty(z[0], losowe_punkty)
+        self.load_players()
+        QMessageBox.information(self, "Gotowe", "Punkty zostały wylosowane!")
+
 
 class TournamentManager(QWidget):
     def __init__(self):
         super().__init__()
-        self.initUI()
-        self.zawodnicy = Zawodnicy()  # Utworzenie instancji klasy Zawodnicy
-        self.zawodnicy.create_table()  # Tworzenie tabeli, jeśli nie istnieje
+        self.zawodnicy = Zawodnicy()
+        self.zawodnicy.create_table()
+        self.init_ui()
 
-    def initUI(self):
-        # Przyciski
+    def init_ui(self):
+        layout = QVBoxLayout()
+
         add_tournament_button = QPushButton("Dodaj Turniej", self)
         show_tournaments_button = QPushButton("Wyświetl Turnieje", self)
         add_player_button = QPushButton("Dodaj Zawodnika", self)
         show_players_button = QPushButton("Wyświetl Zawodników", self)
-        
-        # Układ
-        layout = QVBoxLayout()
+
+        add_tournament_button.clicked.connect(self.add_tournament)
+        show_tournaments_button.clicked.connect(self.show_tournaments)
+        add_player_button.clicked.connect(self.open_add_player)
+        show_players_button.clicked.connect(self.open_show_players)
+
         layout.addWidget(add_tournament_button)
         layout.addWidget(show_tournaments_button)
         layout.addWidget(add_player_button)
         layout.addWidget(show_players_button)
+
         self.setLayout(layout)
-
-        # Podłączenie funkcji do przycisków
-        add_tournament_button.clicked.connect(self.add_tournament)
-        show_tournaments_button.clicked.connect(self.show_tournaments)
-        add_player_button.clicked.connect(self.add_player)
-        show_players_button.clicked.connect(self.show_players)
-
-        # Ustawienia okna
         self.setGeometry(300, 300, 300, 250)
         self.setWindowTitle("Menadżer Turniejów")
         self.show()
 
-
     def add_tournament(self):
-        # Funkcja dodająca turniej
-        QMessageBox.information(self, "Dodaj Turniej", "Funkcja dodawania turnieju")
+        QMessageBox.information(self, "Dodaj Turniej", "Funkcja dodawania turnieju (do zaimplementowania)")
 
     def show_tournaments(self):
-        # Funkcja wyświetlająca turnieje
-        QMessageBox.information(self, "Wyświetl Turnieje", "Funkcja wyświetlania turniejów")
+        QMessageBox.information(self, "Wyświetl Turnieje", "Funkcja wyświetlania turniejów (do zaimplementowania)")
 
-    def add_player(self):
-        """Dodawanie zawodnika do bazy danych."""
-        dialog = QWidget(self)
-        dialog.setWindowTitle("Dodaj Zawodnika")
-        dialog.setGeometry(400, 400, 250, 150)
-        
-        # Form for adding player
-        layout = QFormLayout()
-        imie_input = QLineEdit(dialog)
-        nazwisko_input = QLineEdit(dialog)
-        turniej_input = QLineEdit(dialog)  # Nowe pole na turniej_id
-        
-        layout.addRow(QLabel("Imię:"), imie_input)
-        layout.addRow(QLabel("Nazwisko:"), nazwisko_input)
-        layout.addRow(QLabel("Turniej ID:"), turniej_input)  # Dodanie pola na ID turnieju
-        
-        add_button = QPushButton("Dodaj", dialog)
-        layout.addWidget(add_button)
-        
-        add_button.clicked.connect(lambda: self.save_player(imie_input.text(), nazwisko_input.text(), turniej_input.text(), dialog))
-        
-        dialog.setLayout(layout)
-        dialog.show()
+    def open_add_player(self):
+        self.add_player_window = AddPlayerWindow(self.zawodnicy)
+        self.add_player_window.show()
 
-    def save_player(self, imie, nazwisko, turniej_id, dialog):
-        """Zapisanie danych zawodnika do bazy i zamknięcie okna."""
-        try:
-            turniej_id = int(turniej_id)  # Próbujemy konwertować turniej_id na liczbę
-            self.zawodnicy.add_zawodnik(imie, nazwisko, turniej_id)
-            QMessageBox.information(self, "Sukces", "Zawodnik dodany pomyślnie!")
-            dialog.close()  # Zamknięcie okna
-        except ValueError:
-            QMessageBox.warning(self, "Błąd", "Proszę podać prawidłowe id turnieju.")
+    def open_show_players(self):
+        self.show_players_window = ShowPlayersWindow(self.zawodnicy)
+        self.show_players_window.show()
 
-    def show_players(self):
-        """Wyświetlanie zawodników z bazy danych."""
-        zawodnicy = self.zawodnicy.show_zawodnicy()
-        if zawodnicy:
-            player_list = "\n".join([f"{zawodnik[1]} {zawodnik[2]} (Turniej ID: {zawodnik[3]})" for zawodnik in zawodnicy])
-            QMessageBox.information(self, "Zawodnicy", player_list)
-        else:
-            QMessageBox.information(self, "Brak Zawodników", "Brak zawodników w bazie.")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
