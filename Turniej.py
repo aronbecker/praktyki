@@ -46,5 +46,3 @@ class Turniej:
         ''', (new_name, new_date, new_tables, new_rounds, self.name))
         conn.commit()
         conn.close()
-turniej1 = Turniej("Turniej 1", "2023-10-01", 4, 3)
-turniej1.save()

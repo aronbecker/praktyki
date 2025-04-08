@@ -1,4 +1,5 @@
 import sys
+import sqlite3
 import random
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, QVBoxLayout, QMessageBox,
@@ -6,7 +7,9 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from zawodnicy import Zawodnicy
-
+from Turniej import Turniej
+from AddTournament import AddTournamentWindow
+from ShowTournaments import ShowTournamentsWindow
 
 class AddPlayerWindow(QWidget):
     def __init__(self, zawodnicy):
@@ -173,10 +176,12 @@ class TournamentManager(QWidget):
         self.show()
 
     def add_tournament(self):
-        QMessageBox.information(self, "Dodaj Turniej", "Funkcja dodawania turnieju (do zaimplementowania)")
+        self.add_tournament_window = AddTournamentWindow()
+        self.add_tournament_window.show()
 
     def show_tournaments(self):
-        QMessageBox.information(self, "Wyświetl Turnieje", "Funkcja wyświetlania turniejów (do zaimplementowania)")
+        self.show_tournaments_window = ShowTournamentsWindow()
+        self.show_tournaments_window.show()
 
     def open_add_player(self):
         self.add_player_window = AddPlayerWindow(self.zawodnicy)
