@@ -1,145 +1,7 @@
 import sys
-import random
-from PyQt5.QtWidgets import (
-    QApplication, QWidget, QPushButton, QVBoxLayout, QMessageBox,
-    QLineEdit, QFormLayout, QLabel, QTableWidget, QTableWidgetItem
-)
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QMessageBox
 from zawodnicy import Zawodnicy
-
-
-class AddPlayerWindow(QWidget):
-    def __init__(self, zawodnicy):
-        super().__init__()
-        self.zawodnicy = zawodnicy
-        self.setWindowTitle("Dodaj Zawodnika")
-        self.setGeometry(450, 300, 350, 200)
-        self.init_ui()
-
-    def init_ui(self):
-        layout = QFormLayout()
-
-        self.imie_input = QLineEdit()
-        self.nazwisko_input = QLineEdit()
-        self.turniej_input = QLineEdit()
-
-        layout.addRow(QLabel("Imię:"), self.imie_input)
-        layout.addRow(QLabel("Nazwisko:"), self.nazwisko_input)
-        layout.addRow(QLabel("Turniej ID:"), self.turniej_input)
-
-        add_button = QPushButton("Dodaj")
-        add_button.clicked.connect(self.save_player)
-        layout.addWidget(add_button)
-
-        self.setLayout(layout)
-
-    def save_player(self):
-        imie = self.imie_input.text()
-        nazwisko = self.nazwisko_input.text()
-        turniej_id = self.turniej_input.text()
-
-        try:
-            turniej_id = int(turniej_id)
-            self.zawodnicy.add_zawodnik(imie, nazwisko, turniej_id)
-            QMessageBox.information(self, "Sukces", "Zawodnik dodany pomyślnie!")
-            self.imie_input.clear()
-            self.nazwisko_input.clear()
-            self.turniej_input.clear()
-        except ValueError:
-            QMessageBox.warning(self, "Błąd", "Podaj poprawne ID turnieju.")
-
-
-class ShowPlayersWindow(QWidget):
-    def __init__(self, zawodnicy):
-        super().__init__()
-        self.zawodnicy = zawodnicy
-        self.setWindowTitle("Lista Zawodników")
-        self.setGeometry(450, 300, 600, 400)
-        self.init_ui()
-
-    def init_ui(self):
-        layout = QVBoxLayout()
-
-        self.table = QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["ID", "Imię", "Nazwisko", "Turniej ID", "Punkty"])
-
-        refresh_button = QPushButton("Odśwież")
-        refresh_button.clicked.connect(self.load_players)
-
-        save_button = QPushButton("Zapisz zmiany punktów")
-        save_button.clicked.connect(self.save_points)
-
-        random_button = QPushButton("Wylosuj Punkty")
-        random_button.clicked.connect(self.randomize_points)
-
-        layout.addWidget(self.table)
-        layout.addWidget(refresh_button)
-        layout.addWidget(save_button)
-        layout.addWidget(random_button)
-
-        self.setLayout(layout)
-        self.load_players()
-
-    def load_players(self):
-        zawodnicy = self.zawodnicy.show_zawodnicy()
-        zawodnicy.sort(key=lambda z: z[3])  # Sortuj po turniej_id
-
-        self.table.setRowCount(0)
-        current_turniej = None
-        row_counter = 0
-
-        for zawodnik in zawodnicy:
-            id_, imie, nazwisko, turniej_id, punkty = zawodnik
-
-            if turniej_id != current_turniej:
-                self.table.insertRow(row_counter)
-                item = QTableWidgetItem(f"=== Turniej ID: {turniej_id} ===")
-                item.setFlags(Qt.ItemIsEnabled)
-                item.setTextAlignment(Qt.AlignCenter)
-                self.table.setSpan(row_counter, 0, 1, 5)
-                self.table.setItem(row_counter, 0, item)
-                row_counter += 1
-                current_turniej = turniej_id
-
-            self.table.insertRow(row_counter)
-            self.table.setItem(row_counter, 0, QTableWidgetItem(str(id_)))
-            self.table.setItem(row_counter, 1, QTableWidgetItem(imie))
-            self.table.setItem(row_counter, 2, QTableWidgetItem(nazwisko))
-            self.table.setItem(row_counter, 3, QTableWidgetItem(str(turniej_id)))
-
-            punkty_item = QTableWidgetItem(str(punkty))
-            punkty_item.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)
-            self.table.setItem(row_counter, 4, punkty_item)
-
-            row_counter += 1
-
-    def save_points(self):
-        rows = self.table.rowCount()
-        updated = 0
-
-        for i in range(rows):
-            id_item = self.table.item(i, 0)
-            punkty_item = self.table.item(i, 4)
-
-            if id_item and id_item.text().isdigit():
-                zawodnik_id = int(id_item.text())
-                try:
-                    nowe_punkty = int(punkty_item.text())
-                    self.zawodnicy.update_punkty(zawodnik_id, nowe_punkty)
-                    updated += 1
-                except ValueError:
-                    continue  # pomiń niepoprawne wartości
-
-        QMessageBox.information(self, "Zaktualizowano", f"Punkty zaktualizowane dla {updated} zawodników.")
-
-    def randomize_points(self):
-        zawodnicy = self.zawodnicy.show_zawodnicy()
-        for z in zawodnicy:
-            losowe_punkty = random.randint(0, 1000)
-            self.zawodnicy.update_punkty(z[0], losowe_punkty)
-        self.load_players()
-        QMessageBox.information(self, "Gotowe", "Punkty zostały wylosowane!")
+from zawodnicy_gui import AddPlayerWindow, ShowPlayersWindow
 
 
 class TournamentManager(QWidget):
@@ -168,9 +30,8 @@ class TournamentManager(QWidget):
         layout.addWidget(show_players_button)
 
         self.setLayout(layout)
-        self.setGeometry(300, 300, 300, 250)
         self.setWindowTitle("Menadżer Turniejów")
-        self.show()
+        self.showFullScreen()  # ← FULLSCREEN tutaj
 
     def add_tournament(self):
         QMessageBox.information(self, "Dodaj Turniej", "Funkcja dodawania turnieju (do zaimplementowania)")
