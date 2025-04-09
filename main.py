@@ -1,8 +1,16 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QMessageBox
+import sqlite3
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QMessageBox, QLineEdit, QFormLayout, QLabel, QPushButton
+import random
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QPushButton, QVBoxLayout, QMessageBox,
+    QLineEdit, QFormLayout, QLabel, QTableWidget, QTableWidgetItem
+)
+from PyQt5.QtCore import Qt
 from zawodnicy import Zawodnicy
 from zawodnicy_gui import AddPlayerWindow, ShowPlayersWindow
-
+from AddTournament import AddTournamentWindow
+from ShowTournaments import ShowTournamentsWindow
 
 class TournamentManager(QWidget):
     def __init__(self):
