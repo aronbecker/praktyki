@@ -1,10 +1,8 @@
 import sys
 import sqlite3
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QMessageBox, QLineEdit, QFormLayout, QLabel, QPushButton
-import random
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QPushButton, QVBoxLayout, QMessageBox,
-    QLineEdit, QFormLayout, QLabel, QTableWidget, QTableWidgetItem
+    QApplication, QWidget, QVBoxLayout, QMessageBox,
+    QLineEdit, QFormLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem
 )
 from PyQt5.QtCore import Qt
 from zawodnicy import Zawodnicy
@@ -17,6 +15,7 @@ class TournamentManager(QWidget):
         super().__init__()
         self.zawodnicy = Zawodnicy()
         self.zawodnicy.create_table()
+        self.setFocusPolicy(Qt.StrongFocus)
         self.init_ui()
 
     def init_ui(self):
@@ -26,20 +25,24 @@ class TournamentManager(QWidget):
         show_tournaments_button = QPushButton("Wyświetl Turnieje", self)
         add_player_button = QPushButton("Dodaj Zawodnika", self)
         show_players_button = QPushButton("Wyświetl Zawodników", self)
+       
 
         add_tournament_button.clicked.connect(self.add_tournament)
         show_tournaments_button.clicked.connect(self.show_tournaments)
         add_player_button.clicked.connect(self.open_add_player)
         show_players_button.clicked.connect(self.open_show_players)
+        
 
         layout.addWidget(add_tournament_button)
         layout.addWidget(show_tournaments_button)
         layout.addWidget(add_player_button)
         layout.addWidget(show_players_button)
+      
 
         self.setLayout(layout)
         self.setWindowTitle("Menadżer Turniejów")
-        self.showFullScreen()  # ← FULLSCREEN tutaj
+        self.showMaximized()  
+        self.setFocus()
 
     def add_tournament(self):
         QMessageBox.information(self, "Dodaj Turniej", "Funkcja dodawania turnieju (do zaimplementowania)")
@@ -54,6 +57,21 @@ class TournamentManager(QWidget):
     def open_show_players(self):
         self.show_players_window = ShowPlayersWindow(self.zawodnicy)
         self.show_players_window.show()
+
+    def close_application(self):
+        reply = QMessageBox.question(
+            self,
+            "Potwierdzenie",
+            "Czy na pewno chcesz zamknąć aplikację?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            QApplication.quit()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.close_application()
 
 
 if __name__ == "__main__":

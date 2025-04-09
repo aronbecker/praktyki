@@ -82,19 +82,25 @@ class ShowPlayersWindow(QWidget):
         refresh_button = QPushButton("🔄 Odśwież")
         save_button = QPushButton("💾 Zapisz zmiany punktów")
         random_button = QPushButton("🎲 Wylosuj Punkty")
+        sort_asc_button = QPushButton("🔼 Sortuj rosnąco")
+        sort_desc_button = QPushButton("🔽 Sortuj malejąco")
 
-        for btn in [refresh_button, save_button, random_button]:
+        for btn in [refresh_button, save_button, random_button, sort_asc_button, sort_desc_button]:
             btn.setStyleSheet("padding: 10px; font-weight: bold;")
 
         refresh_button.clicked.connect(self.load_players)
         save_button.clicked.connect(self.save_points)
         random_button.clicked.connect(self.randomize_points)
+        sort_asc_button.clicked.connect(lambda: self.sort_players_by_points(reverse=False))
+        sort_desc_button.clicked.connect(lambda: self.sort_players_by_points(reverse=True))
 
-        buttons_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        buttons_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         buttons_layout.addWidget(refresh_button)
         buttons_layout.addWidget(save_button)
         buttons_layout.addWidget(random_button)
-        buttons_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        buttons_layout.addWidget(sort_asc_button)
+        buttons_layout.addWidget(sort_desc_button)
+        buttons_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         layout.addWidget(title)
         layout.addWidget(self.table)
@@ -105,26 +111,15 @@ class ShowPlayersWindow(QWidget):
         self.load_players()
 
     def load_players(self):
-        self.table.setRowCount(0)
         zawodnicy = self.zawodnicy.show_zawodnicy()
-        zawodnicy.sort(key=lambda z: z[3])
+        self.populate_table(zawodnicy)
 
-        current_turniej = None
+    def populate_table(self, zawodnicy):
+        self.table.setRowCount(0)
         row_counter = 0
 
         for zawodnik in zawodnicy:
             id_, imie, nazwisko, turniej_id, punkty = zawodnik
-
-            if turniej_id != current_turniej:
-                self.table.insertRow(row_counter)
-                item = QTableWidgetItem(f"=== Turniej ID: {turniej_id} ===")
-                item.setFlags(Qt.ItemIsEnabled)
-                item.setTextAlignment(Qt.AlignCenter)
-                self.table.setSpan(row_counter, 0, 1, 7)
-                self.table.setItem(row_counter, 0, item)
-                row_counter += 1
-                current_turniej = turniej_id
-
             self.table.insertRow(row_counter)
             self.table.setItem(row_counter, 0, QTableWidgetItem(str(id_)))
             self.table.setItem(row_counter, 1, QTableWidgetItem(imie))
@@ -135,7 +130,6 @@ class ShowPlayersWindow(QWidget):
             punkty_item.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)
             self.table.setItem(row_counter, 4, punkty_item)
 
-            # Przyciski edytuj/usuń
             edit_button = QPushButton("✏️")
             edit_button.clicked.connect(lambda _, row=row_counter, id_=id_: self.edit_player(row, id_))
             self.table.setCellWidget(row_counter, 5, edit_button)
@@ -195,3 +189,8 @@ class ShowPlayersWindow(QWidget):
             QMessageBox.information(self, "Zaktualizowano", "Zawodnik został zaktualizowany.")
         except ValueError:
             QMessageBox.warning(self, "Błąd", "Turniej ID musi być liczbą.")
+
+    def sort_players_by_points(self, reverse=False):
+        zawodnicy = self.zawodnicy.show_zawodnicy()
+        zawodnicy.sort(key=lambda z: z[4], reverse=reverse)
+        self.populate_table(zawodnicy)
