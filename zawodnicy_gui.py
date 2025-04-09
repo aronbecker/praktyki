@@ -62,7 +62,7 @@ class ShowPlayersWindow(QWidget):
         super().__init__()
         self.zawodnicy = zawodnicy
         self.setWindowTitle("Lista Zawodników")
-        self.setGeometry(350, 200, 1000, 600)
+        self.setGeometry(350, 200, 1200, 600)
         self.init_ui()
 
     def init_ui(self):
@@ -73,12 +73,11 @@ class ShowPlayersWindow(QWidget):
         title.setAlignment(Qt.AlignCenter)
 
         self.table = QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["ID", "Imię", "Nazwisko", "Turniej ID", "Punkty"])
+        self.table.setColumnCount(7)
+        self.table.setHorizontalHeaderLabels(["ID", "Imię", "Nazwisko", "Turniej ID", "Punkty", "✏️ Edytuj", "🗑️ Usuń"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setStyleSheet("font-size: 14px;")
 
-        # Przyciski pod tabelą
         buttons_layout = QHBoxLayout()
         refresh_button = QPushButton("🔄 Odśwież")
         save_button = QPushButton("💾 Zapisz zmiany punktów")
@@ -106,10 +105,10 @@ class ShowPlayersWindow(QWidget):
         self.load_players()
 
     def load_players(self):
-        zawodnicy = self.zawodnicy.show_zawodnicy()
-        zawodnicy.sort(key=lambda z: z[3])  # sortuj po turniej_id
-
         self.table.setRowCount(0)
+        zawodnicy = self.zawodnicy.show_zawodnicy()
+        zawodnicy.sort(key=lambda z: z[3])
+
         current_turniej = None
         row_counter = 0
 
@@ -121,7 +120,7 @@ class ShowPlayersWindow(QWidget):
                 item = QTableWidgetItem(f"=== Turniej ID: {turniej_id} ===")
                 item.setFlags(Qt.ItemIsEnabled)
                 item.setTextAlignment(Qt.AlignCenter)
-                self.table.setSpan(row_counter, 0, 1, 5)
+                self.table.setSpan(row_counter, 0, 1, 7)
                 self.table.setItem(row_counter, 0, item)
                 row_counter += 1
                 current_turniej = turniej_id
@@ -135,6 +134,15 @@ class ShowPlayersWindow(QWidget):
             punkty_item = QTableWidgetItem(str(punkty))
             punkty_item.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)
             self.table.setItem(row_counter, 4, punkty_item)
+
+            # Przyciski edytuj/usuń
+            edit_button = QPushButton("✏️")
+            edit_button.clicked.connect(lambda _, row=row_counter, id_=id_: self.edit_player(row, id_))
+            self.table.setCellWidget(row_counter, 5, edit_button)
+
+            delete_button = QPushButton("🗑️")
+            delete_button.clicked.connect(lambda _, id_=id_: self.delete_player(id_))
+            self.table.setCellWidget(row_counter, 6, delete_button)
 
             row_counter += 1
 
@@ -164,3 +172,26 @@ class ShowPlayersWindow(QWidget):
             self.zawodnicy.update_punkty(z[0], losowe_punkty)
         self.load_players()
         QMessageBox.information(self, "Gotowe", "Punkty zostały wylosowane!")
+
+    def delete_player(self, zawodnik_id):
+        confirm = QMessageBox.question(self, "Potwierdzenie", "Czy na pewno chcesz usunąć tego zawodnika?",
+                                       QMessageBox.Yes | QMessageBox.No)
+        if confirm == QMessageBox.Yes:
+            self.zawodnicy.delete_zawodnik(zawodnik_id)
+            self.load_players()
+
+    def edit_player(self, row, zawodnik_id):
+        imie_item = self.table.item(row, 1)
+        nazwisko_item = self.table.item(row, 2)
+        turniej_item = self.table.item(row, 3)
+
+        imie = imie_item.text() if imie_item else ""
+        nazwisko = nazwisko_item.text() if nazwisko_item else ""
+        turniej_id = turniej_item.text() if turniej_item else ""
+
+        try:
+            turniej_id = int(turniej_id)
+            self.zawodnicy.update_zawodnik(zawodnik_id, imie, nazwisko, turniej_id)
+            QMessageBox.information(self, "Zaktualizowano", "Zawodnik został zaktualizowany.")
+        except ValueError:
+            QMessageBox.warning(self, "Błąd", "Turniej ID musi być liczbą.")

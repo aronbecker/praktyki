@@ -47,10 +47,20 @@ class Zawodnicy:
         conn.commit()
         conn.close()
 
+    def update_zawodnik(self, zawodnik_id, imie, nazwisko, turniej_id):
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE zawodnicy
+            SET imie = ?, nazwisko = ?, turniej_id = ?
+            WHERE id = ?
+        ''', (imie, nazwisko, turniej_id, zawodnik_id))
+        conn.commit()
+        conn.close()
+
     def delete_zawodnik(self, zawodnik_id):
         conn = self.connect()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM zawodnicy WHERE id = ?", (zawodnik_id,))
         conn.commit()
         conn.close()
-        Zawodnicy.delete_zawodnik(self, 11)
