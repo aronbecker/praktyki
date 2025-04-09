@@ -46,7 +46,7 @@ class Zawodnicy:
         cursor.execute("UPDATE zawodnicy SET punkty = ? WHERE id = ?", (punkty, zawodnik_id))
         conn.commit()
         conn.close()
-<<<<<<< HEAD
+
 
     def update_zawodnik(self, zawodnik_id, imie, nazwisko, turniej_id):
         conn = self.connect()
@@ -76,9 +76,4 @@ class Zawodnicy:
         cursor.execute("DELETE FROM zawodnicy WHERE id = ?", (zawodnik_id,))
         conn.commit()
         conn.close()
-<<<<<<< Updated upstream
-=======
-=======
-        
->>>>>>> TournamentUI2
->>>>>>> Stashed changes
+
