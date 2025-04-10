@@ -24,57 +24,60 @@ class TournamentManager(QWidget):
         self.setWindowTitle("Menadżer Turniejów")
         self.setStyleSheet("""
             QWidget {
-                background-color: #f9f9f9;
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #2691f7,
+                    stop: 1 #e6f3ff
+                );
             }
             QPushButton {
-                background-color: #ffffff;
-                border: 1px solid #ddd;
-                border-radius: 16px;
-                padding: 12px;
-                font-size: 16px;
-                color: #333;
-                transition: all 0.3s ease;
+                background-color: rgba(255, 255, 255, 0.85);
+                border: 1px solid #c0deff;
+                border-radius: 18px;
+                padding: 12px 24px;
+                font-size: 17px;
+                font-family: 'Segoe UI', sans-serif;
+                color: #1a1a1a;
             }
             QPushButton:hover {
-                background-color: #f0f0f0;
+                background-color: rgba(255, 255, 255, 0.95);
             }
             QPushButton:pressed {
-                background-color: #e0e0e0;
+                background-color: rgba(230, 244, 255, 0.95);
             }
         """)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(100, 100, 100, 100)
-        layout.setSpacing(20)
+        layout.setSpacing(24)
 
-        title = QLabel("🃏 Menadżer Turniejów")
-        title.setFont(QFont("Helvetica Neue", 28, QFont.Bold))
+        title = QLabel("🎯 Menadżer Turniejów")
+        title.setFont(QFont("Segoe UI", 30, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: #0a0a0a; background: transparent;")
         layout.addWidget(title)
 
-        # Przycisk z cieniem
         def create_button(text, action):
             button = QPushButton(text)
-            button.setMinimumHeight(50)
+            button.setMinimumHeight(52)
 
             shadow = QGraphicsDropShadowEffect()
-            shadow.setBlurRadius(15)
+            shadow.setBlurRadius(20)
             shadow.setOffset(0, 4)
-            shadow.setColor(QColor(0, 0, 0, 50))
+            shadow.setColor(QColor(0, 0, 0, 40))
             button.setGraphicsEffect(shadow)
 
             button.clicked.connect(action)
             layout.addWidget(button)
             return button
 
-        # Przyciskowe akcje
-        create_button("➕ Dodaj Turniej", self.add_tournament)
-        create_button("📅 Wyświetl Turnieje", self.show_tournaments)
-        create_button("👤 Dodaj Zawodnika", self.open_add_player)
-        create_button("📋 Wyświetl Zawodników", self.open_show_players)
+        create_button("➕ Dodaj nowy turniej", self.add_tournament)
+        create_button("📆 Lista turniejów", self.show_tournaments)
+        create_button("🧍 Dodaj zawodnika", self.open_add_player)
+        create_button("📑 Lista zawodników", self.open_show_players)
 
         self.setLayout(layout)
-        self.setMinimumSize(700, 500)
+        self.setMinimumSize(720, 520)
         self.setFocus()
 
     def add_tournament(self):
@@ -107,7 +110,6 @@ class TournamentManager(QWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.close_application()
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
