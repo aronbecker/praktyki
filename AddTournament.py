@@ -40,7 +40,7 @@ class AddTournamentWindow(QWidget):
             liczba_rund = int(liczba_rund)
 
             turniej = Turniej(nazwa, data, liczba_stolow, liczba_rund)
-            turniej.save()
+            turniej.add_tournament(turniej.name, turniej.date, turniej.tables, turniej.rounds)
 
             QMessageBox.information(self, "Sukces", "Turniej dodany pomyślnie!")
             self.nazwa_input.clear()

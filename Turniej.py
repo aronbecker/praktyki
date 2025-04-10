@@ -8,7 +8,7 @@ class Turniej:
         self.tables = tables
         self.rounds = rounds
 
-    def save(self):
+    def add_tournament(self, name, date, tables, rounds):
         conn = sqlite3.connect('tysiac.db')
         cursor = conn.cursor()
         cursor.execute('''
@@ -23,26 +23,32 @@ class Turniej:
         cursor.execute('''
             INSERT INTO tournaments (name, date, tables, rounds)
             VALUES (?, ?, ?, ?)
-        ''', (self.name, self.date, self.tables, self.rounds))
+        ''', (name, date, tables, rounds))
         conn.commit()
         conn.close()
 
-    def delete(self):
+    def delete_tournament(self, tournament_id):
         conn = sqlite3.connect('tysiac.db')
         cursor = conn.cursor()
-        cursor.execute('''
-            DELETE FROM tournaments WHERE name = ?
-        ''', (self.name,))
+        cursor.execute('DELETE FROM tournaments WHERE id = ?', (tournament_id,))
         conn.commit()
         conn.close()
 
-    def update(self, new_name, new_date, new_tables, new_rounds):
+    def update_tournament(self, tournament_id, name, date, tables, rounds):
         conn = sqlite3.connect('tysiac.db')
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE tournaments
             SET name = ?, date = ?, tables = ?, rounds = ?
-            WHERE name = ?
-        ''', (new_name, new_date, new_tables, new_rounds, self.name))
+            WHERE id = ?
+        ''', (name, date, tables, rounds, tournament_id))
         conn.commit()
         conn.close()
+
+    def show_tournament(self):
+        conn = sqlite3.connect('tysiac.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM tournaments')
+        tournaments = cursor.fetchall()
+        conn.close()
+        return tournaments
