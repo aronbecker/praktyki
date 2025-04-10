@@ -9,10 +9,12 @@ from zawodnicy import Zawodnicy
 from zawodnicy_gui import AddPlayerWindow, ShowPlayersWindow
 from AddTournament import AddTournamentWindow
 from ShowTournaments import ShowTournamentsWindow
+from Turniej import Turniej
 
 class TournamentManager(QWidget):
     def __init__(self):
         super().__init__()
+        self.turnieje = Turniej(1,2,3,4)
         self.zawodnicy = Zawodnicy()
         self.zawodnicy.create_table()
         self.setFocusPolicy(Qt.StrongFocus)
@@ -45,10 +47,12 @@ class TournamentManager(QWidget):
         self.setFocus()
 
     def add_tournament(self):
-        QMessageBox.information(self, "Dodaj Turniej", "Funkcja dodawania turnieju (do zaimplementowania)")
+        self.add_tournament_window = AddTournamentWindow()
+        self.add_tournament_window.show()
 
     def show_tournaments(self):
-        QMessageBox.information(self, "Wyświetl Turnieje", "Funkcja wyświetlania turniejów (do zaimplementowania)")
+        self.show_tournaments_window = ShowTournamentsWindow(self.turnieje)
+        self.show_tournaments_window.show()
 
     def open_add_player(self):
         self.add_player_window = AddPlayerWindow(self.zawodnicy)
