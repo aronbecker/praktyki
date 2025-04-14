@@ -8,7 +8,7 @@ class Turniej:
         self.tables = tables
         self.rounds = rounds
 
-    def add_tournament(self, name, date, tables, rounds):
+    def add_tournament(self, name, date, tables):
         conn = sqlite3.connect('tysiac.db')
         cursor = conn.cursor()
         cursor.execute('''
@@ -21,9 +21,9 @@ class Turniej:
             )
         ''')
         cursor.execute('''
-            INSERT INTO tournaments (name, date, tables, rounds)
+            INSERT INTO tournaments (name, date, tables)
             VALUES (?, ?, ?, ?)
-        ''', (name, date, tables, rounds))
+        ''', (name, date, tables))
         conn.commit()
         conn.close()
 
@@ -34,14 +34,14 @@ class Turniej:
         conn.commit()
         conn.close()
 
-    def update_tournament(self, tournament_id, name, date, tables, rounds):
+    def update_tournament(self, tournament_id, name, date, tables):
         conn = sqlite3.connect('tysiac.db')
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE tournaments
-            SET name = ?, date = ?, tables = ?, rounds = ?
+            SET name = ?, date = ?, tables = ?,
             WHERE id = ?
-        ''', (name, date, tables, rounds, tournament_id))
+        ''', (name, date, tables, tournament_id))
         conn.commit()
         conn.close()
 
@@ -52,3 +52,23 @@ class Turniej:
         tournaments = cursor.fetchall()
         conn.close()
         return tournaments
+    
+    def update_round_counter(self):
+        conn = sqlite3.connect('tysiac.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM tournaments')
+        tournament_ids = cursor.fetchall()
+
+        for tournament_id in tournament_ids:
+            cursor.execute('SELECT COUNT(*) FROM rounds WHERE tournament_id = ?', (tournament_id[0],))
+            round_count = cursor.fetchone()[0]
+            cursor.execute('''
+            UPDATE tournaments
+            SET rounds = ?
+            WHERE id = ?
+            ''', (round_count, tournament_id[0]))
+
+        conn.commit()
+        conn.close()
+turniej = Turniej("Turniej 1", "2023-10-01", 4, 0)
+turniej.update_round_counter()

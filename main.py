@@ -9,7 +9,9 @@ from zawodnicy import Zawodnicy
 from zawodnicy_gui import AddPlayerWindow, ShowPlayersWindow
 from AddTournament import AddTournamentWindow
 from ShowTournaments import ShowTournamentsWindow
+from RoundsWindow import RoundsWindow, SaveRoundWindow
 from Turniej import Turniej
+from TablesWindow import TablesWindow
 
 class TournamentManager(QWidget):
     def __init__(self):
