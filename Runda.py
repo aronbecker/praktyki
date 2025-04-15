@@ -28,6 +28,7 @@ class Runda:
         conn = sqlite3.connect('tysiac.db')
         cursor = conn.cursor()
         cursor.execute('DELETE FROM rounds WHERE id = ?', (round_id,))
+
         conn.commit()
         conn.close()
     def show_rounds(self, tournament_id):

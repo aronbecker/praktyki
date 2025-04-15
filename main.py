@@ -11,6 +11,8 @@ from AddTournament import AddTournamentWindow
 from ShowTournaments import ShowTournamentsWindow
 from RoundsWindow import RoundsWindow, SaveRoundWindow
 from Turniej import Turniej
+from Runda import Runda
+from Table import Table
 from TablesWindow import TablesWindow
 
 class TournamentManager(QWidget):

@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from Runda import Runda
 from TablesWindow import TablesWindow
+from Table import Table
 
 class RoundsWindow(QWidget):
     def __init__(self, id_):
@@ -64,7 +65,7 @@ class RoundsWindow(QWidget):
             self.table.setItem(row_counter, 2, QTableWidgetItem(name))
             self.table.setItem(row_counter, 3, QTableWidgetItem(str(tables)))
             table_button = QPushButton("Szczegóły")
-            table_button.clicked.connect(lambda _, id_=id_: self.show_tables(id_))
+            table_button.clicked.connect(lambda _, id_=id_, tables=tables: self.show_tables(id_,tables))
             self.table.setCellWidget(row_counter, 4, table_button)
             delete_button = QPushButton("🗑️")
             delete_button.clicked.connect(lambda _, id_=id_: self.remove_round(id_))
@@ -76,15 +77,17 @@ class RoundsWindow(QWidget):
                                        QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.rounds.delete_round(id_)
+            Table.delete_tables(1, id_)
             self.load_rounds()
-            
+
     def open_save_round(self):
         self.save_round_window = SaveRoundWindow()
         self.save_round_window.show()
 
-    def show_tables(self, id_):
+    def show_tables(self, id_, tables):
         self.id_ = id_
-        self.tables_window = TablesWindow(id_)
+        self.tables = tables
+        self.tables_window = TablesWindow(id_,tables)
         self.tables_window.show()
 
 
