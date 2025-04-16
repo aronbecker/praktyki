@@ -7,7 +7,6 @@ from PyQt5.QtCore import Qt
 from Runda import Runda
 from RoundsWindow import RoundsWindow
 
-
 class ShowTournamentsWindow(QWidget):
     def __init__(self, turnieje):
         super().__init__()
@@ -31,10 +30,6 @@ class ShowTournamentsWindow(QWidget):
 
         buttons_layout = QHBoxLayout()
         refresh_button = QPushButton("🔄 Odśwież")
-
-        for btn in [refresh_button]:
-            btn.setStyleSheet("padding: 10px; font-weight: bold;")
-
         refresh_button.clicked.connect(self.load_tournaments)
 
         buttons_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
@@ -51,30 +46,24 @@ class ShowTournamentsWindow(QWidget):
 
     def load_tournaments(self):
         self.table.setRowCount(0)
-        turnieje = self.turnieje.update_round_counter()
+        self.turnieje.update_round_counter()
         turnieje = self.turnieje.show_tournament()
-        turnieje.sort(key=lambda z: z[3])
-
+        turnieje.sort(key=lambda z: z[4])  # sort by rounds
 
         row_counter = 0
         for turniej in turnieje:
             id_, name, date, tables, rounds = turniej
-
             self.table.insertRow(row_counter)
             self.table.setItem(row_counter, 0, QTableWidgetItem(str(id_)))
             self.table.setItem(row_counter, 1, QTableWidgetItem(name))
             self.table.setItem(row_counter, 2, QTableWidgetItem(date))
             self.table.setItem(row_counter, 3, QTableWidgetItem(str(tables)))
-
-            rounds_item = QTableWidgetItem(str(rounds))
-            rounds_item.setFlags(Qt.ItemIsEnabled)
-            self.table.setItem(row_counter, 4, rounds_item)
+            self.table.setItem(row_counter, 4, QTableWidgetItem(str(rounds)))
 
             details_button = QPushButton("Szczegóły")
             details_button.clicked.connect(lambda _, id_=id_: self.show_details(id_))
             self.table.setCellWidget(row_counter, 5, details_button)
 
-            # Przyciski edytuj/usuń
             edit_button = QPushButton("✏️")
             edit_button.clicked.connect(lambda _, row=row_counter, id_=id_: self.edit_tournament(row, id_))
             self.table.setCellWidget(row_counter, 6, edit_button)
@@ -86,8 +75,7 @@ class ShowTournamentsWindow(QWidget):
             row_counter += 1
 
     def remove_tournament(self, id_):
-        confirm = QMessageBox.question(self, "Potwierdzenie", "Czy na pewno chcesz usunąć ten turniej?",
-                                       QMessageBox.Yes | QMessageBox.No)
+        confirm = QMessageBox.question(self, "Potwierdzenie", "Czy na pewno chcesz usunąć ten turniej?", QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.turnieje.delete_tournament(id_)
             self.load_tournaments()
@@ -104,9 +92,10 @@ class ShowTournamentsWindow(QWidget):
         try:
             tables = int(tables) if tables else 0
             self.turnieje.update_tournament(id_, name, date, tables)
-            QMessageBox.information(self, "Zaktualizowano", "turniej został zaktualizowany.")
+            QMessageBox.information(self, "Zaktualizowano", "Turniej został zaktualizowany.")
         except ValueError:
-            QMessageBox.warning(self, "Błąd", "ID, liczba stołów muszą być liczbami.")
+            QMessageBox.warning(self, "Błąd", "ID oraz liczba stołów muszą być liczbami.")
+    
     def show_details(self, id_):
         self.id_ = id_
         self.rounds_window = RoundsWindow(id_)

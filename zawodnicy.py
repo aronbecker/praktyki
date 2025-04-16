@@ -1,8 +1,9 @@
 import sqlite3
 
 class Zawodnicy:
-    def __init__(self, db_name="turniejedb.sqlite3"):
+    def __init__(self, db_name="turniej_db.sqlite"):
         self.db_name = db_name
+        self.create_table()
 
     def connect(self):
         return sqlite3.connect(self.db_name)
@@ -40,18 +41,17 @@ class Zawodnicy:
         conn.close()
         return zawodnicy
 
-    def get_zawodnika_z_najmniejsza_liczba_punktow(self):
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM zawodnicy ORDER BY punkty ASC LIMIT 1')
-        zawodnik = cursor.fetchone()  # Zwróci tylko jednego zawodnika
-        conn.close()
-        return zawodnik
-
     def update_punkty(self, zawodnik_id, punkty):
         conn = self.connect()
         cursor = conn.cursor()
         cursor.execute("UPDATE zawodnicy SET punkty = ? WHERE id = ?", (punkty, zawodnik_id))
+        conn.commit()
+        conn.close()
+
+    def delete_zawodnik(self, zawodnik_id):
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM zawodnicy WHERE id = ?", (zawodnik_id,))
         conn.commit()
         conn.close()
 
@@ -63,12 +63,5 @@ class Zawodnicy:
             SET imie = ?, nazwisko = ?, turniej_id = ?
             WHERE id = ?
         ''', (imie, nazwisko, turniej_id, zawodnik_id))
-        conn.commit()
-        conn.close()
-
-    def delete_zawodnik(self, zawodnik_id):
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM zawodnicy WHERE id = ?", (zawodnik_id,))
         conn.commit()
         conn.close()

@@ -179,7 +179,7 @@ class ShowPlayersWindow(QWidget):
         sort_asc_button = self.create_button("🔼 Rosnąco", lambda: self.sort_players_by_points(reverse=False))
         sort_desc_button = self.create_button("🔽 Malejąco", lambda: self.sort_players_by_points(reverse=True))
 
-        details_button = self.create_button("Pokaż Szczegóły", self.show_player_details)
+        details_button = self.create_button("🏆 Prezentacja", self.show_player_details)
 
         buttons_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         buttons_layout.addWidget(refresh_button)

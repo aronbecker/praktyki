@@ -1,5 +1,4 @@
 import sys
-import sqlite3
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QMessageBox, QLineEdit, QFormLayout, QLabel
 from Turniej import Turniej
 
@@ -36,7 +35,7 @@ class AddTournamentWindow(QWidget):
             liczba_stolow = int(liczba_stolow)
 
             turniej = Turniej(nazwa, data, liczba_stolow)
-            turniej.add_tournament(turniej.name, turniej.date, turniej.tables)
+            turniej.add_tournament()
 
             QMessageBox.information(self, "Sukces", "Turniej dodany pomyślnie!")
             self.nazwa_input.clear()
