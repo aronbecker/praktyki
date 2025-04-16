@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy
 )
 from PyQt5.QtCore import Qt
-from Table import Table
+from Table import Table  # Upewnij się, że masz poprawnie zdefiniowaną klasę Table
 import sqlite3
 import random
 
@@ -99,13 +99,23 @@ class TablesWindow(QWidget):
         # Zaktualizuj stoły
         for table_id, players in table_data.items():
             player_columns = ["player_1", "player_2", "player_3", "player_4"]
-            update_values = players + ["brak"] * (4 - len(players))
+            
+            # Ogranicz do maksymalnie 4 graczy, dodaj "brak" w razie potrzeby
+            if len(players) > 4:
+                players = players[:4]
+            update_values = players + ["brak"] * (4 - len(players))  # Ensure exactly 4 players
+
+            # Debug info
+            print(f"Updating table {table_id} with players: {update_values}")
+            print(f"Total bindings: {len(update_values) + 1}")  # Expect 5 bindings
+
             sql = f"""
                 UPDATE tables
                 SET {', '.join(f"{col} = ?" for col in player_columns)}
                 WHERE id = ?
             """
-            cursor.execute(sql, (*update_values, table_id))
+            
+            cursor.execute(sql, update_values + [table_id])  # Append table_id correctly
 
         connection.commit()
         connection.close()
