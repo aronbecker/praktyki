@@ -2,9 +2,10 @@ import random
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QFormLayout, QLabel, QLineEdit, QPushButton,
     QMessageBox, QTableWidget, QTableWidgetItem, QHBoxLayout, QSpacerItem,
-    QSizePolicy
+    QSizePolicy, QGraphicsDropShadowEffect, QDialog
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QFont
 
 
 class AddPlayerWindow(QWidget):
@@ -13,12 +14,37 @@ class AddPlayerWindow(QWidget):
         self.zawodnicy = zawodnicy
         self.setWindowTitle("Dodaj Zawodnika")
         self.setGeometry(400, 250, 500, 300)
+
+        # Ustawienie gradientu jako tła dla całego okna
+        self.setStyleSheet("""
+            QWidget {
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #2691f7,
+                    stop: 1 #e6f3ff
+                );
+            }
+            QLineEdit {
+                background-color: rgba(255, 255, 255, 0.9);
+                border: 1px solid #c0deff;
+                border-radius: 12px;
+                padding: 8px 12px;
+                font-size: 15px;
+                min-height: 30px;
+            }
+        """)
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
         form_layout = QFormLayout()
         form_layout.setSpacing(20)
+
+        title = QLabel("➕ Dodaj Zawodnika")
+        title.setFont(QFont("Segoe UI", 20, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: #0a0a0a; background: transparent;")
+        layout.addWidget(title)
 
         self.imie_input = QLineEdit()
         self.nazwisko_input = QLineEdit()
@@ -32,14 +58,43 @@ class AddPlayerWindow(QWidget):
         form_layout.addRow(QLabel("Nazwisko:"), self.nazwisko_input)
         form_layout.addRow(QLabel("Turniej ID:"), self.turniej_input)
 
-        add_button = QPushButton("➕ Dodaj Zawodnika")
-        add_button.setStyleSheet("padding: 10px; font-weight: bold;")
-        add_button.clicked.connect(self.save_player)
+        add_button = self.create_button("Dodaj Zawodnika", self.save_player)
 
         layout.addLayout(form_layout)
         layout.addWidget(add_button)
-        layout.setContentsMargins(40, 30, 40, 30)
+        layout.setContentsMargins(40, 20, 40, 30)
         self.setLayout(layout)
+
+    def create_button(self, text, action):
+        button = QPushButton(text)
+        button.setMinimumHeight(52)
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setOffset(0, 4)
+        shadow.setColor(QColor(0, 0, 0, 40))
+        button.setGraphicsEffect(shadow)
+
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.85);
+                border: 1px solid #c0deff;
+                border-radius: 18px;
+                padding: 12px 24px;
+                font-size: 17px;
+                font-family: 'Segoe UI', sans-serif;
+                color: #1a1a1a;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.95);
+            }
+            QPushButton:pressed {
+                background-color: rgba(230, 244, 255, 0.95);
+            }
+        """)
+
+        button.clicked.connect(action)
+        return button
 
     def save_player(self):
         imie = self.imie_input.text()
@@ -63,36 +118,68 @@ class ShowPlayersWindow(QWidget):
         self.zawodnicy = zawodnicy
         self.setWindowTitle("Lista Zawodników")
         self.setGeometry(350, 200, 1200, 600)
+        self.setStyleSheet("""
+            QWidget {
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #2691f7,
+                    stop: 1 #e6f3ff
+                );
+            }
+            QTableWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                font-size: 14px;
+            }
+            QHeaderView::section {
+                background-color: #2691f7;
+                color: white;
+                padding: 6px;
+                font-weight: bold;
+            }
+        """)
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
 
         title = QLabel("📋 Lista Zawodników")
-        title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title.setFont(QFont("Segoe UI", 24, QFont.Bold))
+        title.setStyleSheet("color: #0a0a0a; background: transparent;")
         title.setAlignment(Qt.AlignCenter)
 
         self.table = QTableWidget()
         self.table.setColumnCount(7)
-        self.table.setHorizontalHeaderLabels(["ID", "Imię", "Nazwisko", "Turniej ID", "Punkty", "✏️ Edytuj", "🗑️ Usuń"])
+        self.table.setHorizontalHeaderLabels(["ID", "Imię", "Nazwisko", "Turniej ID", "Punkty", "✏️", "🗑️"])
         self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.setStyleSheet("font-size: 14px;")
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                padding: 8px;
+            }
+            QTableWidget::item {
+                padding: 8px;
+            }
+        """)
+
+        # Ustawienie szerokości kolumn
+        self.table.setColumnWidth(0, 60)   # ID
+        self.table.setColumnWidth(1, 150)  # Imię
+        self.table.setColumnWidth(2, 200)  # Nazwisko
+        self.table.setColumnWidth(3, 80)   # Turniej ID
+        self.table.setColumnWidth(4, 80)   # Punkty
+        self.table.setColumnWidth(5, 50)   # Edytuj
+        self.table.setColumnWidth(6, 50)   # Usuń
 
         buttons_layout = QHBoxLayout()
-        refresh_button = QPushButton("🔄 Odśwież")
-        save_button = QPushButton("💾 Zapisz zmiany punktów")
-        random_button = QPushButton("🎲 Wylosuj Punkty")
-        sort_asc_button = QPushButton("🔼 Sortuj rosnąco")
-        sort_desc_button = QPushButton("🔽 Sortuj malejąco")
+        refresh_button = self.create_button("🔄 Odśwież", self.load_players)
+        save_button = self.create_button("💾 Zapisz punkty", self.save_points)
+        random_button = self.create_button("🎲 Losuj punkty", self.randomize_points)
+        sort_asc_button = self.create_button("🔼 Rosnąco", lambda: self.sort_players_by_points(reverse=False))
+        sort_desc_button = self.create_button("🔽 Malejąco", lambda: self.sort_players_by_points(reverse=True))
 
-        for btn in [refresh_button, save_button, random_button, sort_asc_button, sort_desc_button]:
-            btn.setStyleSheet("padding: 10px; font-weight: bold;")
-
-        refresh_button.clicked.connect(self.load_players)
-        save_button.clicked.connect(self.save_points)
-        random_button.clicked.connect(self.randomize_points)
-        sort_asc_button.clicked.connect(lambda: self.sort_players_by_points(reverse=False))
-        sort_desc_button.clicked.connect(lambda: self.sort_players_by_points(reverse=True))
+        details_button = self.create_button("Pokaż Szczegóły", self.show_player_details)
 
         buttons_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         buttons_layout.addWidget(refresh_button)
@@ -100,15 +187,52 @@ class ShowPlayersWindow(QWidget):
         buttons_layout.addWidget(random_button)
         buttons_layout.addWidget(sort_asc_button)
         buttons_layout.addWidget(sort_desc_button)
+        buttons_layout.addWidget(details_button)
         buttons_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         layout.addWidget(title)
         layout.addWidget(self.table)
         layout.addLayout(buttons_layout)
         layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
 
         self.setLayout(layout)
         self.load_players()
+
+    def create_button(self, text, action):
+        button = QPushButton(text)
+        button.setMinimumHeight(40 if text in ["✏️", "🗑️"] else 52)
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setOffset(0, 3)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        button.setGraphicsEffect(shadow)
+
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.85);
+                border: 1px solid #c0deff;
+                border-radius: %s;
+                padding: %s;
+                font-size: %s;
+                font-family: 'Segoe UI', sans-serif;
+                color: #1a1a1a;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.95);
+            }
+            QPushButton:pressed {
+                background-color: rgba(230, 244, 255, 0.95);
+            }
+        """ % (
+            "12px" if text in ["✏️", "🗑️"] else "18px",
+            "4px 8px" if text in ["✏️", "🗑️"] else "12px 24px",
+            "16px" if text in ["✏️", "🗑️"] else "17px"
+        ))
+
+        button.clicked.connect(action)
+        return button
 
     def load_players(self):
         zawodnicy = self.zawodnicy.show_zawodnicy()
@@ -116,29 +240,24 @@ class ShowPlayersWindow(QWidget):
 
     def populate_table(self, zawodnicy):
         self.table.setRowCount(0)
-        row_counter = 0
-
         for zawodnik in zawodnicy:
             id_, imie, nazwisko, turniej_id, punkty = zawodnik
-            self.table.insertRow(row_counter)
-            self.table.setItem(row_counter, 0, QTableWidgetItem(str(id_)))
-            self.table.setItem(row_counter, 1, QTableWidgetItem(imie))
-            self.table.setItem(row_counter, 2, QTableWidgetItem(nazwisko))
-            self.table.setItem(row_counter, 3, QTableWidgetItem(str(turniej_id)))
+            row_position = self.table.rowCount()
+            self.table.insertRow(row_position)
+            self.table.setItem(row_position, 0, QTableWidgetItem(str(id_)))
+            self.table.setItem(row_position, 1, QTableWidgetItem(imie))
+            self.table.setItem(row_position, 2, QTableWidgetItem(nazwisko))
+            self.table.setItem(row_position, 3, QTableWidgetItem(str(turniej_id)))
 
             punkty_item = QTableWidgetItem(str(punkty))
             punkty_item.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)
-            self.table.setItem(row_counter, 4, punkty_item)
+            self.table.setItem(row_position, 4, punkty_item)
 
-            edit_button = QPushButton("✏️")
-            edit_button.clicked.connect(lambda _, row=row_counter, id_=id_: self.edit_player(row, id_))
-            self.table.setCellWidget(row_counter, 5, edit_button)
+            edit_button = self.create_button("✏️", lambda _, row=row_position, id_=id_: self.edit_player(row, id_))
+            delete_button = self.create_button("🗑️", lambda _, id_=id_: self.delete_player(id_))
 
-            delete_button = QPushButton("🗑️")
-            delete_button.clicked.connect(lambda _, id_=id_: self.delete_player(id_))
-            self.table.setCellWidget(row_counter, 6, delete_button)
-
-            row_counter += 1
+            self.table.setCellWidget(row_position, 5, edit_button)
+            self.table.setCellWidget(row_position, 6, delete_button)
 
     def save_points(self):
         rows = self.table.rowCount()
@@ -194,3 +313,105 @@ class ShowPlayersWindow(QWidget):
         zawodnicy = self.zawodnicy.show_zawodnicy()
         zawodnicy.sort(key=lambda z: z[4], reverse=reverse)
         self.populate_table(zawodnicy)
+
+    def show_player_details(self):
+        zawodnicy_sorted = sorted(self.zawodnicy.show_zawodnicy(), key=lambda x: x[4])
+        if zawodnicy_sorted:
+            selected_player = zawodnicy_sorted[0]  # Zawodnik z najmniejszą ilością punktów
+            detail_window = PlayerDetailWindow(zawodnicy_sorted, selected_player)
+            detail_window.exec_()
+        else:
+            QMessageBox.warning(self, "Brak Zawodników", "Nie ma żadnych zawodników w bazie danych.")
+
+
+class PlayerDetailWindow(QDialog):
+    def __init__(self, sorted_players, current_player):
+        super().__init__()
+        self.sorted_players = sorted_players
+        self.current_index = self.sorted_players.index(current_player)
+        self.current_player = current_player
+
+        self.setWindowTitle("Szczegóły Zawodnika")
+        self.setGeometry(400, 250, 400, 200)
+
+        # Ustawienie gradientu jako tła dla całego okna
+        self.setStyleSheet("""
+            QDialog {
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #2691f7,
+                    stop: 1 #e6f3ff
+                );
+            }
+            QLabel {
+                font-size: 16px;
+                font-weight: bold;
+                color: #0a0a0a;
+            }
+        """)
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        self.details_label = QLabel(self.get_player_details())
+        self.details_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.details_label)
+
+        # Dodanie przycisków "Następny" i "Poprzedni" z tym samym stylem jak inne przyciski
+        next_button = self.create_button("Następny", self.next_player)
+        previous_button = self.create_button("Poprzedni", self.previous_player)
+
+        # Dodanie przycisków do layoutu
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(previous_button)
+        button_layout.addWidget(next_button)
+        layout.addLayout(button_layout)
+
+        self.setLayout(layout)
+
+    def get_player_details(self):
+        return f"{self.current_player[1]} {self.current_player[2]} - Punkty: {self.current_player[4]}"
+
+    def next_player(self):
+        if self.current_index < len(self.sorted_players) - 1:
+            self.current_index += 1
+            self.current_player = self.sorted_players[self.current_index]
+            self.details_label.setText(self.get_player_details())
+
+    def previous_player(self):
+        if self.current_index > 0:
+            self.current_index -= 1
+            self.current_player = self.sorted_players[self.current_index]
+            self.details_label.setText(self.get_player_details())
+
+    def create_button(self, text, action):
+        button = QPushButton(text)
+        button.setMinimumHeight(40)
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setOffset(0, 3)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        button.setGraphicsEffect(shadow)
+
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.85);
+                border: 1px solid #c0deff;
+                border-radius: 12px;
+                padding: 8px 16px;
+                font-size: 16px;
+                font-family: 'Segoe UI', sans-serif;
+                color: #1a1a1a;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.95);
+            }
+            QPushButton:pressed {
+                background-color: rgba(230, 244, 255, 0.95);
+            }
+        """)
+
+        button.clicked.connect(action)
+        return button
