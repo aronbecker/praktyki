@@ -69,7 +69,7 @@ class TablesWindow(QWidget):
 
         connection.close()
     def randomize_players(self):
-        connection = sqlite3.connect("turniejedb.sqlite3")
+        connection = sqlite3.connect("turniej_db.sqlite")
         cursor = connection.cursor()
 
         # Fetch all player IDs and their names
