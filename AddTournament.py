@@ -1,7 +1,8 @@
 import sys
 import sqlite3
-from PyQt5.QtWidgets import(QWidget, QPushButton, QVBoxLayout, QMessageBox, QLineEdit, 
-QFormLayout, QLabel, QGraphicsDropShadowEffect,
+from PyQt5.QtWidgets import (
+    QWidget, QPushButton, QVBoxLayout, QMessageBox, QLineEdit,
+    QFormLayout, QLabel, QGraphicsDropShadowEffect,
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
@@ -47,10 +48,11 @@ class AddTournamentWindow(QWidget):
         layout.addRow(QLabel("Data:"), self.data_input)
         layout.addRow(QLabel("Liczba Stołów:"), self.liczba_stolow_input)
 
-        add_button = self.create_button("Dodaj",self.save_tournament)
+        add_button = self.create_button("Dodaj", self.save_tournament)
         layout.addWidget(add_button)
 
         self.setLayout(layout)
+
     def create_button(self, text, action):
         button = QPushButton(text)
         button.setMinimumHeight(52)
@@ -91,7 +93,7 @@ class AddTournamentWindow(QWidget):
             liczba_stolow = int(liczba_stolow)
 
             turniej = Turniej(nazwa, data, liczba_stolow)
-            turniej.add_tournament(turniej.name, turniej.date, turniej.tables)
+            turniej.add_tournament()  # ✅ Poprawione wywołanie metody
 
             QMessageBox.information(self, "Sukces", "Turniej dodany pomyślnie!")
             self.nazwa_input.clear()

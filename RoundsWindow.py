@@ -136,7 +136,7 @@ class RoundsWindow(QWidget):
                                        QMessageBox.Yes | QMessageBox.No)
         if confirm == QMessageBox.Yes:
             self.rounds.delete_round(id_)
-            Table.delete_tables(1, id_)
+            Table.delete_tables(id_)
             self.load_rounds()
 
     def open_save_round(self):
