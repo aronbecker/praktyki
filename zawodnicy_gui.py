@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QMessageBox, QTableWidget, QTableWidgetItem, QHBoxLayout, QSpacerItem,
     QSizePolicy, QGraphicsDropShadowEffect, QDialog
 )
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
 
 
@@ -313,7 +313,7 @@ class ShowPlayersWindow(QWidget):
         self.populate_table(zawodnicy)
 
     def show_player_details(self):
-        sorted_players = sorted(self.zawodnicy.show_zawodnicy(), key=lambda x: x[4])
+        sorted_players = sorted(self.zawodnicy.show_zawodnicy(), key=lambda x: x[4])  # Sortowanie od najmniejszej liczby punktów
         if sorted_players:
             rankings = self.get_player_rankings(sorted_players)
             self.display_player_details(sorted_players, rankings)
@@ -321,34 +321,20 @@ class ShowPlayersWindow(QWidget):
             QMessageBox.warning(self, "Brak Zawodników", "Nie ma żadnych zawodników w bazie danych.")
 
     def display_player_details(self, sorted_players, rankings):
-        self.current_index = len(sorted_players) - 1  # Zaczynamy od ostatniego zawodnika
-        detail_window = PlayerDetailWindow(sorted_players, sorted_players[self.current_index], rankings)
-
-        # Używanie QTimer do symulacji oczekiwania
-        timer = QTimer(self)
-        timer.setSingleShot(True)
-        timer.timeout.connect(lambda: self.update_player_details(detail_window, sorted_players, rankings))
-        timer.start(1000)  # 1 sekunda opóźnienia przed wyświetleniem szczegółów
-
+        detail_window = PlayerDetailWindow(sorted_players, rankings)
         detail_window.exec_()
 
-    def update_player_details(self, detail_window, sorted_players, rankings):
-        detail_window.show_next_player(sorted_players, rankings)
-
     def get_player_rankings(self, players):
-        rankings = {}
-        for index, (id_, imie, nazwisko, turniej_id, punkty) in enumerate(players):
-            rankings[id_] = index + 1  # Miejsce zaczyna się od 1
+        rankings = {player[0]: idx + 1 for idx, player in enumerate(players)}
         return rankings
 
 
 class PlayerDetailWindow(QDialog):
-    def __init__(self, sorted_players, current_player, rankings):
+    def __init__(self, sorted_players, rankings):
         super().__init__()
         self.sorted_players = sorted_players
-        self.current_index = self.sorted_players.index(current_player)
-        self.current_player = current_player
         self.rankings = rankings
+        self.current_index = 0  # Ustawiamy na pierwszy zawodnik, który będzie wyświetlany
 
         self.setWindowTitle("Szczegóły Zawodnika")
         self.setGeometry(400, 250, 400, 200)
@@ -367,6 +353,7 @@ class PlayerDetailWindow(QDialog):
                 color: #0a0a0a;
             }
         """)
+
         self.init_ui()
 
     def init_ui(self):
@@ -376,8 +363,8 @@ class PlayerDetailWindow(QDialog):
         self.details_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.details_label)
 
-        next_button = self.create_button("Poprzedni", self.next_player)
-        previous_button = self.create_button("Nastepny", self.previous_player)
+        next_button = self.create_button("Następny", self.next_player)
+        previous_button = self.create_button("Poprzedni", self.previous_player)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(previous_button)
@@ -387,23 +374,18 @@ class PlayerDetailWindow(QDialog):
         self.setLayout(layout)
 
     def get_player_details(self):
-        rank = self.rankings[self.current_player[0]]
-        return f"{self.current_player[1]} {self.current_player[2]} - Punkty: {self.current_player[4]}, Miejsce: {rank}"
-
-    def show_next_player(self, sorted_players, rankings):
-        if self.current_index < len(sorted_players) - 1:
-            self.next_player()  # Przechodzi do następnego zawodnika, aby pokazać szczegóły
+        current_player = self.sorted_players[self.current_index]
+        rank = self.rankings[current_player[0]]
+        return f"{current_player[1]} {current_player[2]} - Punkty: {current_player[4]}, Miejsce: {rank}"
 
     def next_player(self):
         if self.current_index < len(self.sorted_players) - 1:
             self.current_index += 1
-            self.current_player = self.sorted_players[self.current_index]
             self.details_label.setText(self.get_player_details())
 
     def previous_player(self):
         if self.current_index > 0:
             self.current_index -= 1
-            self.current_player = self.sorted_players[self.current_index]
             self.details_label.setText(self.get_player_details())
 
     def create_button(self, text, action):
@@ -436,3 +418,44 @@ class PlayerDetailWindow(QDialog):
 
         button.clicked.connect(action)
         return button
+
+
+# Przykładowa implementacja klasy Zawodnicy
+class Zawodnicy:
+    def __init__(self):
+        self.players = []
+
+    def add_zawodnik(self, imie, nazwisko, turniej_id):
+        id_ = len(self.players) + 1
+        self.players.append([id_, imie, nazwisko, turniej_id, 0])
+
+    def show_zawodnicy(self):
+        return self.players
+
+    def update_punkty(self, zawodnik_id, punkty):
+        for player in self.players:
+            if player[0] == zawodnik_id:
+                player[4] = punkty
+
+    def delete_zawodnik(self, zawodnik_id):
+        self.players = [p for p in self.players if p[0] != zawodnik_id]
+
+    def update_zawodnik(self, zawodnik_id, imie, nazwisko, turniej_id):
+        for player in self.players:
+            if player[0] == zawodnik_id:
+                player[1] = imie
+                player[2] = nazwisko
+                player[3] = turniej_id
+
+
+if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+
+    zawodnicy = Zawodnicy()
+    main_window = ShowPlayersWindow(zawodnicy)
+    main_window.show()
+
+    sys.exit(app.exec_())
