@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QMessageBox, QTableWidget, QTableWidgetItem, QHBoxLayout, QSpacerItem,
     QSizePolicy, QGraphicsDropShadowEffect, QDialog
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QColor, QFont
 
 
@@ -15,7 +15,6 @@ class AddPlayerWindow(QWidget):
         self.setWindowTitle("Dodaj Zawodnika")
         self.setGeometry(400, 250, 500, 300)
 
-        # Ustawienie gradientu jako tła dla całego okna
         self.setStyleSheet("""
             QWidget {
                 background: qlineargradient(
@@ -163,14 +162,13 @@ class ShowPlayersWindow(QWidget):
             }
         """)
 
-        # Ustawienie szerokości kolumn
-        self.table.setColumnWidth(0, 60)   # ID
-        self.table.setColumnWidth(1, 150)  # Imię
-        self.table.setColumnWidth(2, 200)  # Nazwisko
-        self.table.setColumnWidth(3, 80)   # Turniej ID
-        self.table.setColumnWidth(4, 80)   # Punkty
-        self.table.setColumnWidth(5, 50)   # Edytuj
-        self.table.setColumnWidth(6, 50)   # Usuń
+        self.table.setColumnWidth(0, 60)
+        self.table.setColumnWidth(1, 150)
+        self.table.setColumnWidth(2, 200)
+        self.table.setColumnWidth(3, 80)
+        self.table.setColumnWidth(4, 80)
+        self.table.setColumnWidth(5, 50)
+        self.table.setColumnWidth(6, 50)
 
         buttons_layout = QHBoxLayout()
         refresh_button = self.create_button("🔄 Odśwież", self.load_players)
@@ -315,26 +313,46 @@ class ShowPlayersWindow(QWidget):
         self.populate_table(zawodnicy)
 
     def show_player_details(self):
-        zawodnicy_sorted = sorted(self.zawodnicy.show_zawodnicy(), key=lambda x: x[4])
-        if zawodnicy_sorted:
-            selected_player = zawodnicy_sorted[0]  # Zawodnik z najmniejszą ilością punktów
-            detail_window = PlayerDetailWindow(zawodnicy_sorted, selected_player)
-            detail_window.exec_()
+        sorted_players = sorted(self.zawodnicy.show_zawodnicy(), key=lambda x: x[4])
+        if sorted_players:
+            rankings = self.get_player_rankings(sorted_players)
+            self.display_player_details(sorted_players, rankings)
         else:
             QMessageBox.warning(self, "Brak Zawodników", "Nie ma żadnych zawodników w bazie danych.")
 
+    def display_player_details(self, sorted_players, rankings):
+        self.current_index = len(sorted_players) - 1  # Zaczynamy od ostatniego zawodnika
+        detail_window = PlayerDetailWindow(sorted_players, sorted_players[self.current_index], rankings)
+
+        # Używanie QTimer do symulacji oczekiwania
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.timeout.connect(lambda: self.update_player_details(detail_window, sorted_players, rankings))
+        timer.start(1000)  # 1 sekunda opóźnienia przed wyświetleniem szczegółów
+
+        detail_window.exec_()
+
+    def update_player_details(self, detail_window, sorted_players, rankings):
+        detail_window.show_next_player(sorted_players, rankings)
+
+    def get_player_rankings(self, players):
+        rankings = {}
+        for index, (id_, imie, nazwisko, turniej_id, punkty) in enumerate(players):
+            rankings[id_] = index + 1  # Miejsce zaczyna się od 1
+        return rankings
+
 
 class PlayerDetailWindow(QDialog):
-    def __init__(self, sorted_players, current_player):
+    def __init__(self, sorted_players, current_player, rankings):
         super().__init__()
         self.sorted_players = sorted_players
         self.current_index = self.sorted_players.index(current_player)
         self.current_player = current_player
+        self.rankings = rankings
 
         self.setWindowTitle("Szczegóły Zawodnika")
         self.setGeometry(400, 250, 400, 200)
 
-        # Ustawienie gradientu jako tła dla całego okna
         self.setStyleSheet("""
             QDialog {
                 background: qlineargradient(
@@ -358,11 +376,9 @@ class PlayerDetailWindow(QDialog):
         self.details_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.details_label)
 
-        # Dodanie przycisków "Następny" i "Poprzedni" z tym samym stylem jak inne przyciski
-        next_button = self.create_button("Następny", self.next_player)
-        previous_button = self.create_button("Poprzedni", self.previous_player)
+        next_button = self.create_button("Poprzedni", self.next_player)
+        previous_button = self.create_button("Nastepny", self.previous_player)
 
-        # Dodanie przycisków do layoutu
         button_layout = QHBoxLayout()
         button_layout.addWidget(previous_button)
         button_layout.addWidget(next_button)
@@ -371,7 +387,12 @@ class PlayerDetailWindow(QDialog):
         self.setLayout(layout)
 
     def get_player_details(self):
-        return f"{self.current_player[1]} {self.current_player[2]} - Punkty: {self.current_player[4]}"
+        rank = self.rankings[self.current_player[0]]
+        return f"{self.current_player[1]} {self.current_player[2]} - Punkty: {self.current_player[4]}, Miejsce: {rank}"
+
+    def show_next_player(self, sorted_players, rankings):
+        if self.current_index < len(sorted_players) - 1:
+            self.next_player()  # Przechodzi do następnego zawodnika, aby pokazać szczegóły
 
     def next_player(self):
         if self.current_index < len(self.sorted_players) - 1:
