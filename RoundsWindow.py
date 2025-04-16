@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
-    QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy, QFormLayout, QLineEdit
+    QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy, QFormLayout, QLineEdit, QGraphicsDropShadowEffect
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QFont
 from Runda import Runda
 from TablesWindow import TablesWindow
 from Table import Table
@@ -14,31 +15,56 @@ class RoundsWindow(QWidget):
         self.rounds = Runda(1,2,3)
         self.setWindowTitle("Rundy Turnieju")
         self.setGeometry(350, 200, 1200, 600)
+        self.setStyleSheet("""
+            QWidget {
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #2691f7,
+                    stop: 1 #e6f3ff
+                );
+            }
+            QTableWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                font-size: 14px;
+            }
+            QHeaderView::section {
+                background-color: #2691f7;
+                color: white;
+                padding: 6px;
+                font-weight: bold;
+            }
+        """)
         self.init_ui()
     def init_ui(self):
         layout = QVBoxLayout()
 
         title = QLabel("RUNDY TURNIEJU ID: {}".format(self.tournaments_id))
-        title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title.setFont(QFont("Segoe UI", 24, QFont.Bold))
+        title.setStyleSheet("color: #0a0a0a; background: transparent;")
         title.setAlignment(Qt.AlignCenter)
-
+        
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["ID", "ID turnieju", "Nazwa", "Liczba Stołów","Więcej", "Usuń"])
         self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.setStyleSheet("font-size: 14px;")
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                padding: 8px;
+            }
+            QTableWidget::item {
+                padding: 8px;
+            }
+        """)
+
         
         layout.addWidget(title)
         layout.addWidget(self.table)
         buttons_layout = QHBoxLayout()
-        refresh_button = QPushButton("🔄 Odśwież")
-        save_round_button = QPushButton("+ Dodaj Rundę")
-
-        for btn in [refresh_button, save_round_button]:
-            btn.setStyleSheet("padding: 10px; font-weight: bold;")
-
-        refresh_button.clicked.connect(self.load_rounds)
-        save_round_button.clicked.connect(self.open_save_round)
+        refresh_button = self.create_button("🔄 Odśwież",self.load_rounds)
+        save_round_button = self.create_button("+ Dodaj Rundę",self.open_save_round)
 
         buttons_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         buttons_layout.addWidget(refresh_button)
@@ -49,6 +75,41 @@ class RoundsWindow(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
         self.setLayout(layout)
         self.load_rounds()
+
+    def create_button(self, text, action):
+        button = QPushButton(text)
+        button.setMinimumHeight(40 if text in ["✏️", "🗑️"] else 52)
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setOffset(0, 3)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        button.setGraphicsEffect(shadow)
+
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.85);
+                border: 1px solid #c0deff;
+                border-radius: %s;
+                padding: %s;
+                font-size: %s;
+                font-family: 'Segoe UI', sans-serif;
+                color: #1a1a1a;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.95);
+            }
+            QPushButton:pressed {
+                background-color: rgba(230, 244, 255, 0.95);
+            }
+        """ % (
+            "12px" if text in ["✏️", "🗑️"] else "18px",
+            "4px 8px" if text in ["✏️", "🗑️"] else "12px 24px",
+            "16px" if text in ["✏️", "🗑️"] else "17px"
+        ))
+
+        button.clicked.connect(action)
+        return button
 
     def load_rounds(self):
         rounds = self.rounds.show_rounds(self.tournaments_id)
@@ -64,11 +125,9 @@ class RoundsWindow(QWidget):
             self.table.setItem(row_counter, 1, QTableWidgetItem(str(tournament_id)))
             self.table.setItem(row_counter, 2, QTableWidgetItem(name))
             self.table.setItem(row_counter, 3, QTableWidgetItem(str(tables)))
-            table_button = QPushButton("Szczegóły")
-            table_button.clicked.connect(lambda _, id_=id_, tables=tables: self.show_tables(id_,tables))
+            table_button = self.create_button("Stoły",lambda _, id_=id_, tables=tables: self.show_tables(id_,tables))
             self.table.setCellWidget(row_counter, 4, table_button)
-            delete_button = QPushButton("🗑️")
-            delete_button.clicked.connect(lambda _, id_=id_: self.remove_round(id_))
+            delete_button = self.create_button("🗑️",lambda _, id_=id_: self.remove_round(id_))
             self.table.setCellWidget(row_counter, 5, delete_button)
             row_counter += 1
 
@@ -81,7 +140,7 @@ class RoundsWindow(QWidget):
             self.load_rounds()
 
     def open_save_round(self):
-        self.save_round_window = SaveRoundWindow()
+        self.save_round_window = SaveRoundWindow(self.tournaments_id)
         self.save_round_window.show()
 
     def show_tables(self, id_, tables):
@@ -92,44 +151,94 @@ class RoundsWindow(QWidget):
 
 
 class SaveRoundWindow(QWidget):
-    def __init__(self):
+    def __init__(self, tournaments_id):
+
         super().__init__()
+        self.tournament_id = tournaments_id
         self.setWindowTitle("Dodaj Rundę")
         self.setGeometry(450, 300, 350, 200)
+        self.setStyleSheet("""
+            QWidget {
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #2691f7,
+                    stop: 1 #e6f3ff
+                );
+            }
+            QLineEdit {
+                background-color: rgba(255, 255, 255, 0.9);
+                border: 1px solid #c0deff;
+                border-radius: 12px;
+                padding: 8px 12px;
+                font-size: 15px;
+                min-height: 30px;
+            }
+        """)
         self.init_ui()
 
     def init_ui(self):
         layout = QFormLayout()
-
-        self.tournament_id_input = QLineEdit()
+        title = QLabel("➕ Dodaj Rundę")
+        title.setFont(QFont("Segoe UI", 20, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: #0a0a0a; background: transparent;")
+        layout.addWidget(title)
         self.name_input = QLineEdit()
         self.tables_input = QLineEdit()
         self.liczba_rund_input = QLineEdit()
 
-        layout.addRow(QLabel("ID Turnieju:"), self.tournament_id_input)
         layout.addRow(QLabel("Nazwa:"), self.name_input)
         layout.addRow(QLabel("Liczba Stołów:"), self.tables_input)
 
-        add_button = QPushButton("Dodaj")
-        add_button.clicked.connect(self.save_round)
+        add_button = self.create_button(("Dodaj"),lambda: self.save_round(self.tournament_id))
         layout.addWidget(add_button)
 
         self.setLayout(layout)
+        
+    def create_button(self, text, action):
+        button = QPushButton(text)
+        button.setMinimumHeight(52)
 
-    def save_round(self):
-        tournament_id = self.tournament_id_input.text()
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setOffset(0, 4)
+        shadow.setColor(QColor(0, 0, 0, 40))
+        button.setGraphicsEffect(shadow)
+
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.85);
+                border: 1px solid #c0deff;
+                border-radius: 18px;
+                padding: 12px 24px;
+                font-size: 17px;
+                font-family: 'Segoe UI', sans-serif;
+                color: #1a1a1a;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.95);
+            }
+            QPushButton:pressed {
+                background-color: rgba(230, 244, 255, 0.95);
+            }
+        """)
+
+        button.clicked.connect(action)
+        return button
+
+    def save_round(self, tournaments_id):
+        self.tournament_id = tournaments_id
+        tournament_id = self.tournament_id
         name = self.name_input.text()
         tables = self.tables_input.text()
 
         try:
             tables = int(tables)
-            tournament_id = int(tournament_id)
 
             round = Runda(tournament_id, name, tables)
             round.add_round(round.tournament_id, round.name, round.tables,)
 
-            QMessageBox.information(self, "Sukces", "Runda dodana pomyślnie!(Okno rund pokazuje tylko rundy z ID wybranego turnieju)")
-            self.tournament_id_input.clear()
+            QMessageBox.information(self, "Sukces", "Runda dodana pomyślnie do obecnego turnieju!")
             self.name_input.clear()
             self.tables_input.clear()
         except ValueError:

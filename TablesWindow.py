@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
-    QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy, QFormLayout, QLineEdit
+    QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy, QFormLayout, QLineEdit, QGraphicsDropShadowEffect
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QFont
 from Table import Table
 import sqlite3
 import random
@@ -15,31 +16,57 @@ class TablesWindow(QWidget):
         table_count = tables
         self.setWindowTitle("Stoły Rundy")
         self.setGeometry(350, 200, 1200, 600)
+        self.setStyleSheet("""
+            QWidget {
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #2691f7,
+                    stop: 1 #e6f3ff
+                );
+            }
+            QTableWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                font-size: 14px;
+            }
+            QHeaderView::section {
+                background-color: #2691f7;
+                color: white;
+                padding: 6px;
+                font-weight: bold;
+            }
+        """)
         self.init_ui()
     def init_ui(self):
         layout = QVBoxLayout()
 
         title = QLabel("Stoły Rundy ID: {}".format(self.id_))
-        title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title.setFont(QFont("Segoe UI", 24, QFont.Bold))
+        title.setStyleSheet("color: #0a0a0a; background: transparent;")
         title.setAlignment(Qt.AlignCenter)
 
         self.table = QTableWidget()
         self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels(["ID", "ID Rundy", "Nazwa", "Gracz 1","Gracz 2","Gracz 3","Gracz 4"])
         self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.setStyleSheet("font-size: 14px;")
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                padding: 8px;
+            }
+            QTableWidget::item {
+                padding: 8px;
+            }
+        """)
+
         
         layout.addWidget(title)
         layout.addWidget(self.table)
         buttons_layout = QHBoxLayout()
-        refresh_button = QPushButton("🔄 Odśwież")
-        randomize_button = QPushButton("🎲 Losuj Zawodników")
+        refresh_button = self.create_button("🔄 Odśwież",self.load_tables)
+        randomize_button = self.create_button("🎲 Losuj Zawodników",self.randomize_players)
 
-        for btn in [refresh_button]:
-            btn.setStyleSheet("padding: 10px; font-weight: bold;")
-
-        refresh_button.clicked.connect(self.load_tables)
-        randomize_button.clicked.connect(self.randomize_players)
         buttons_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         buttons_layout.addWidget(refresh_button)
         buttons_layout.addWidget(randomize_button)
@@ -49,6 +76,42 @@ class TablesWindow(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
         self.setLayout(layout)
         self.load_tables()
+
+    def create_button(self, text, action):
+        button = QPushButton(text)
+        button.setMinimumHeight(40 if text in ["✏️", "🗑️"] else 52)
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setOffset(0, 3)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        button.setGraphicsEffect(shadow)
+
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.85);
+                border: 1px solid #c0deff;
+                border-radius: %s;
+                padding: %s;
+                font-size: %s;
+                font-family: 'Segoe UI', sans-serif;
+                color: #1a1a1a;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.95);
+            }
+            QPushButton:pressed {
+                background-color: rgba(230, 244, 255, 0.95);
+            }
+        """ % (
+            "12px" if text in ["✏️", "🗑️"] else "18px",
+            "4px 8px" if text in ["✏️", "🗑️"] else "12px 24px",
+            "16px" if text in ["✏️", "🗑️"] else "17px"
+        ))
+
+        button.clicked.connect(action)
+        return button
+
     def load_tables(self):
         connection = sqlite3.connect("tysiac.db")
         cursor = connection.cursor()

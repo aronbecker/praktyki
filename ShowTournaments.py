@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton,
     QMessageBox, QTableWidget, QTableWidgetItem, QHBoxLayout, QSpacerItem,
-    QSizePolicy
+    QSizePolicy, QGraphicsDropShadowEffect
 )
+from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtCore import Qt
 from Runda import Runda
 from RoundsWindow import RoundsWindow
@@ -14,28 +15,54 @@ class ShowTournamentsWindow(QWidget):
         self.turnieje = turnieje
         self.setWindowTitle("Lista Turnieji")
         self.setGeometry(350, 200, 1200, 600)
+        self.setStyleSheet("""
+            QWidget {
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #2691f7,
+                    stop: 1 #e6f3ff
+                );
+            }
+            QTableWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                font-size: 14px;
+            }
+            QHeaderView::section {
+                background-color: #2691f7;
+                color: white;
+                padding: 6px;
+                font-weight: bold;
+            }
+        """)
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
 
         title = QLabel("📋 Lista Turnieji")
-        title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title.setFont(QFont("Segoe UI", 24, QFont.Bold))
+        title.setStyleSheet("color: #0a0a0a; background: transparent;")
         title.setAlignment(Qt.AlignCenter)
 
         self.table = QTableWidget()
         self.table.setColumnCount(8)
         self.table.setHorizontalHeaderLabels(["ID", "Nazwa", "Data", "Liczba Stołów", "Liczba Rund", "Więcej", "✏️ Edytuj", "🗑️ Usuń"])
         self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.setStyleSheet("font-size: 14px;")
+        self.table.setStyleSheet("""
+            QTableWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 12px;
+                padding: 8px;
+            }
+            QTableWidget::item {
+                padding: 8px;
+            }
+        """)
+
 
         buttons_layout = QHBoxLayout()
-        refresh_button = QPushButton("🔄 Odśwież")
-
-        for btn in [refresh_button]:
-            btn.setStyleSheet("padding: 10px; font-weight: bold;")
-
-        refresh_button.clicked.connect(self.load_tournaments)
+        refresh_button = self.create_button("🔄 Odśwież", self.load_tournaments)
 
         buttons_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         buttons_layout.addWidget(refresh_button)
@@ -48,6 +75,40 @@ class ShowTournamentsWindow(QWidget):
 
         self.setLayout(layout)
         self.load_tournaments()
+    def create_button(self, text, action):
+        button = QPushButton(text)
+        button.setMinimumHeight(40 if text in ["✏️", "🗑️"] else 52)
+
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setOffset(0, 3)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        button.setGraphicsEffect(shadow)
+
+        button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.85);
+                border: 1px solid #c0deff;
+                border-radius: %s;
+                padding: %s;
+                font-size: %s;
+                font-family: 'Segoe UI', sans-serif;
+                color: #1a1a1a;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.95);
+            }
+            QPushButton:pressed {
+                background-color: rgba(230, 244, 255, 0.95);
+            }
+        """ % (
+            "12px" if text in ["✏️", "🗑️"] else "18px",
+            "4px 8px" if text in ["✏️", "🗑️"] else "12px 24px",
+            "16px" if text in ["✏️", "🗑️"] else "17px"
+        ))
+
+        button.clicked.connect(action)
+        return button
 
     def load_tournaments(self):
         self.table.setRowCount(0)
@@ -70,17 +131,14 @@ class ShowTournamentsWindow(QWidget):
             rounds_item.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row_counter, 4, rounds_item)
 
-            details_button = QPushButton("Szczegóły")
-            details_button.clicked.connect(lambda _, id_=id_: self.show_details(id_))
+            details_button = self.create_button("Rundy",lambda _, id_=id_: self.show_details(id_))
             self.table.setCellWidget(row_counter, 5, details_button)
 
             # Przyciski edytuj/usuń
-            edit_button = QPushButton("✏️")
-            edit_button.clicked.connect(lambda _, row=row_counter, id_=id_: self.edit_tournament(row, id_))
+            edit_button = self.create_button("✏️",lambda _, row=row_counter, id_=id_: self.edit_tournament(row, id_))
             self.table.setCellWidget(row_counter, 6, edit_button)
 
-            delete_button = QPushButton("🗑️")
-            delete_button.clicked.connect(lambda _, id_=id_: self.remove_tournament(id_))
+            delete_button = self.create_button("🗑️",lambda _, id_=id_: self.remove_tournament(id_))
             self.table.setCellWidget(row_counter, 7, delete_button)
 
             row_counter += 1
