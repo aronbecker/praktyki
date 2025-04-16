@@ -8,9 +8,9 @@ from TablesWindow import TablesWindow
 from Table import Table
 
 class RoundsWindow(QWidget):
-    def __init__(self, id_):
+    def __init__(self, tournaments_id):
         super().__init__()
-        self.id_ = id_
+        self.tournaments_id = tournaments_id
         self.rounds = Runda(1,2,3)
         self.setWindowTitle("Rundy Turnieju")
         self.setGeometry(350, 200, 1200, 600)
@@ -18,7 +18,7 @@ class RoundsWindow(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
 
-        title = QLabel("RUNDY TURNIEJU ID: {}".format(self.id_))
+        title = QLabel("RUNDY TURNIEJU ID: {}".format(self.tournaments_id))
         title.setStyleSheet("font-size: 24px; font-weight: bold;")
         title.setAlignment(Qt.AlignCenter)
 
@@ -51,7 +51,7 @@ class RoundsWindow(QWidget):
         self.load_rounds()
 
     def load_rounds(self):
-        rounds = self.rounds.show_rounds(self.id_)
+        rounds = self.rounds.show_rounds(self.tournaments_id)
         self.populate_table(rounds)
 
     def populate_table(self, rounds):

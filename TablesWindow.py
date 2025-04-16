@@ -80,6 +80,16 @@ class TablesWindow(QWidget):
         connection.close()
         random.shuffle(player_ids)
 
+        # Calculate the total number of spots at the tables
+        total_spots = self.tables * 4
+        num_players = len(player_ids)
+
+        # Determine the grouping rule
+        if num_players > total_spots:
+            group_size = 4
+        else:
+            group_size = 3
+
         # Fetch all table IDs for the current round
         connection = sqlite3.connect("tysiac.db")
         cursor = connection.cursor()
@@ -88,14 +98,33 @@ class TablesWindow(QWidget):
 
         # Assign players to tables
         table_data = {table_id: [] for table_id in table_ids}
-        for i, player_id in enumerate(player_ids):
-            table_id = table_ids[i % len(table_ids)]
-            table_data[table_id].append(player_data[player_id])
+        player_index = 0
+
+        # Assign players to tables based on the group size
+        for table_id in table_ids:
+            if player_index + group_size <= num_players:
+                table_data[table_id] = player_ids[player_index:player_index + group_size]
+                player_index += group_size
+
+        # Distribute any remaining players to the tables
+        remainder = num_players - player_index
+        if remainder > 0:
+            for i in range(remainder):
+                table_id = table_ids[i % len(table_ids)]
+                table_data[table_id].append(player_ids[player_index])
+                player_index += 1
+
+        # Ensure remaining players fill the fourth spot if group size is 3
+        for table_id, players in table_data.items():
+            if len(players) == 3 and player_index < num_players:
+                players.append(player_ids[player_index])
+                player_index += 1
 
         # Update tables in the database
         for table_id, players in table_data.items():
             player_columns = ["player_1", "player_2", "player_3", "player_4"]
-            update_values = players + ["brak"] * (4 - len(players))
+            update_values = [player_data.get(player_id, "brak") for player_id in players] + ["brak"] * (4 - len(players))
+            update_values = update_values[:4]  # Ensure exactly 4 player values
             cursor.execute(f"""
             UPDATE tables
             SET {', '.join(f"{col} = ?" for col in player_columns)}
