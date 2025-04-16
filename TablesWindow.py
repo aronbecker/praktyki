@@ -1,47 +1,45 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
-    QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy
+    QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy, QFormLayout, QLineEdit
 )
 from PyQt5.QtCore import Qt
-from Table import Table  # Upewnij się, że ścieżka jest poprawna
+from Table import Table
 import sqlite3
 import random
 
 class TablesWindow(QWidget):
-    def __init__(self, id_, tables):
+    def __init__(self, id_,tables):
         super().__init__()
         self.id_ = id_
         self.tables = tables
+        table_count = tables
         self.setWindowTitle("Stoły Rundy")
         self.setGeometry(350, 200, 1200, 600)
         self.init_ui()
-
     def init_ui(self):
         layout = QVBoxLayout()
 
-        title = QLabel(f"Stoły Rundy ID: {self.id_}")
+        title = QLabel("Stoły Rundy ID: {}".format(self.id_))
         title.setStyleSheet("font-size: 24px; font-weight: bold;")
         title.setAlignment(Qt.AlignCenter)
 
         self.table = QTableWidget()
         self.table.setColumnCount(7)
-        self.table.setHorizontalHeaderLabels(["ID", "ID Rundy", "Nazwa", "Gracz 1", "Gracz 2", "Gracz 3", "Gracz 4"])
+        self.table.setHorizontalHeaderLabels(["ID", "ID Rundy", "Nazwa", "Gracz 1","Gracz 2","Gracz 3","Gracz 4"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setStyleSheet("font-size: 14px;")
-
+        
         layout.addWidget(title)
         layout.addWidget(self.table)
-
         buttons_layout = QHBoxLayout()
         refresh_button = QPushButton("🔄 Odśwież")
         randomize_button = QPushButton("🎲 Losuj Zawodników")
 
-        for btn in [refresh_button, randomize_button]:
+        for btn in [refresh_button]:
             btn.setStyleSheet("padding: 10px; font-weight: bold;")
 
         refresh_button.clicked.connect(self.load_tables)
         randomize_button.clicked.connect(self.randomize_players)
-
         buttons_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         buttons_layout.addWidget(refresh_button)
         buttons_layout.addWidget(randomize_button)
@@ -50,9 +48,7 @@ class TablesWindow(QWidget):
         layout.addLayout(buttons_layout)
         layout.setContentsMargins(30, 30, 30, 30)
         self.setLayout(layout)
-
         self.load_tables()
-
     def load_tables(self):
         connection = sqlite3.connect("turniej_db.sqlite")
         cursor = connection.cursor()
@@ -61,12 +57,8 @@ class TablesWindow(QWidget):
         rows = cursor.fetchall()
 
         if not rows:
-            # Jeśli nie ma stołów w bazie, tworzymy nowe obiekty Table i dodajemy je do bazy
             for i in range(self.tables):
-                table = Table(self.id_, f"Stolik {i + 1}")
-                table.add_table()
-
-            # Ponownie pobieramy dane, aby wypełnić tabelę
+                Table.add_table(1, self.id_, f"Stolik {i + 1}", "brak", "brak", "brak", "brak")
             cursor.execute("SELECT * FROM tables WHERE runda_id = ?", (self.id_,))
             rows = cursor.fetchall()
 
@@ -76,9 +68,8 @@ class TablesWindow(QWidget):
                 self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(col_data)))
 
         connection.close()
-
     def randomize_players(self):
-        connection = sqlite3.connect("turniej_db.sqlite")  # Upewnij się, że korzystasz z odpowiedniej bazy
+        connection = sqlite3.connect("turniejedb.sqlite3")
         cursor = connection.cursor()
 
         # Fetch all player IDs and their names
@@ -86,17 +77,14 @@ class TablesWindow(QWidget):
         players = cursor.fetchall()
         player_data = {row[0]: f"{row[1]} {row[2]}" for row in players}
         player_ids = list(player_data.keys())
+        connection.close()
         random.shuffle(player_ids)
 
         # Fetch all table IDs for the current round
+        connection = sqlite3.connect("turniej_db.sqlite")
+        cursor = connection.cursor()
         cursor.execute("SELECT id FROM tables WHERE runda_id = ?", (self.id_,))
         table_ids = [row[0] for row in cursor.fetchall()]
-
-        # Sprawdź, czy są dostępne stoły
-        if not table_ids:
-            QMessageBox.warning(self, "Brak Stołów", "Brak dostępnych stołów dla tej rundy.")
-            connection.close()
-            return  # Zatrzymaj dalsze wykonanie funkcji
 
         # Assign players to tables
         table_data = {table_id: [] for table_id in table_ids}
@@ -108,13 +96,11 @@ class TablesWindow(QWidget):
         for table_id, players in table_data.items():
             player_columns = ["player_1", "player_2", "player_3", "player_4"]
             update_values = players + ["brak"] * (4 - len(players))
-
-            # Upewnij się, że przekazujesz tylko cztery wartości
             cursor.execute(f"""
             UPDATE tables
             SET {', '.join(f"{col} = ?" for col in player_columns)}
             WHERE id = ?
-            """, (*update_values[:4], table_id))
+            """, (*update_values, table_id))
 
         connection.commit()
         connection.close()
