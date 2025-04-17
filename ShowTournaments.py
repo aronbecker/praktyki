@@ -49,6 +49,7 @@ class ShowTournamentsWindow(QWidget):
         self.table.setColumnCount(8)
         self.table.setHorizontalHeaderLabels(["ID", "Nazwa", "Data", "Liczba Stołów", "Liczba Rund", "Więcej", "✏️ Edytuj", "🗑️ Usuń"])
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.verticalHeader().setDefaultSectionSize(80)
         self.table.setStyleSheet("""
             QTableWidget {
                 background-color: rgba(255, 255, 255, 0.9);

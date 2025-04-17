@@ -48,6 +48,7 @@ class RoundsWindow(QWidget):
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["ID", "ID turnieju", "Nazwa", "Liczba Stołów","Więcej", "Usuń"])
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.verticalHeader().setDefaultSectionSize(80)
         self.table.setStyleSheet("""
             QTableWidget {
                 background-color: rgba(255, 255, 255, 0.9);
