@@ -7,6 +7,7 @@ from PyQt5.QtGui import QColor, QFont
 from Table import Table  # Upewnij się, że masz poprawnie zdefiniowaną klasę Table
 import sqlite3
 import random
+from SetPointsWindow import SetPointsWindow
 
 class TablesWindow(QWidget):
     def __init__(self, id_, tables):
@@ -43,8 +44,8 @@ class TablesWindow(QWidget):
         title.setAlignment(Qt.AlignCenter)
 
         self.table = QTableWidget()
-        self.table.setColumnCount(7)
-        self.table.setHorizontalHeaderLabels(["ID", "ID Rundy", "Nazwa", "Gracz 1", "Gracz 2", "Gracz 3", "Gracz 4"])
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(["Nazwa", "Gracz 1", "Gracz 2", "Gracz 3", "Gracz 4", "Ustaw"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setStyleSheet("font-size: 14px;")
         self.table.verticalHeader().setDefaultSectionSize(80)
@@ -113,7 +114,7 @@ class TablesWindow(QWidget):
         connection = sqlite3.connect("turniej_db.sqlite")
         cursor = connection.cursor()
 
-        cursor.execute("SELECT * FROM tables WHERE runda_id = ?", (self.id_,))
+        cursor.execute("SELECT name, player_1, player_2, player_3, player_4 FROM tables WHERE runda_id = ?", (self.id_,))
         rows = cursor.fetchall()
 
         if not rows:
@@ -130,6 +131,9 @@ class TablesWindow(QWidget):
                 self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(col_data)))
 
         connection.close()
+        for row_idx in range(self.table.rowCount()):
+            button = self.create_button("Punkty", lambda _, row=row_idx: self.show_points(row))
+            self.table.setCellWidget(row_idx, 5, button)
 
     def randomize_players(self):
         connection = sqlite3.connect("turniej_db.sqlite")
@@ -177,3 +181,12 @@ class TablesWindow(QWidget):
         connection.close()
 
         self.load_tables()
+    def show_points(self, row):
+        table_name = self.table.item(row, 0).text()
+        player_1 = self.table.item(row, 1).text()
+        player_2 = self.table.item(row, 2).text()
+        player_3 = self.table.item(row, 3).text()
+        player_4 = self.table.item(row, 4).text()
+
+        self.points_window = SetPointsWindow(table_name, player_1, player_2, player_3, player_4)
+        self.points_window.show()

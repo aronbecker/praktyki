@@ -14,6 +14,7 @@ from Turniej import Turniej
 from Runda import Runda
 from Table import Table
 from TablesWindow import TablesWindow
+from SetPointsWindow import SetPointsWindow
 
 class TournamentManager(QWidget):
     def __init__(self):
