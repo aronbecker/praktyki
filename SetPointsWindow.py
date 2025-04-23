@@ -1,19 +1,27 @@
 import sys
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton,
-    QGraphicsDropShadowEffect, QFormLayout, QLineEdit
+    QGraphicsDropShadowEffect, QFormLayout, QLineEdit, QDialog
 )
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtCore import Qt
 
-class SetPointsWindow(QWidget):
-    def __init__(self, name, player_1, player_2, player_3, player_4):
-        super().__init__()
-        self.name = name
+class SetPointsWindow(QDialog):
+    def __init__(self, table_name, player_1, player_2, player_3, player_4,
+                 punkty_1=0, punkty_2=0, punkty_3=0, punkty_4=0, parent=None):
+        super().__init__(parent)
+        self.table_name = table_name
         self.player_1 = player_1
         self.player_2 = player_2
         self.player_3 = player_3
         self.player_4 = player_4
+        self.punkty_1 = punkty_1
+        self.punkty_2 = punkty_2
+        self.punkty_3 = punkty_3
+        self.punkty_4 = punkty_4
+
+        # tutaj dalszy kod GUI i inicjalizacji
+
         self.setWindowTitle("Ustaw Punkty")
         self.setGeometry(450, 300, 350, 300)
         self.init_ui()
