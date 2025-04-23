@@ -36,9 +36,21 @@ class Table:
         with self.connect() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO tables (runda_id, name, player_1, player_2, player_3, player_4)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (self.runda_id, self.name, self.player_1, self.player_2, self.player_3, self.player_4))
+                INSERT INTO tables (runda_id, name, player_1, player_2, player_3, player_4, punkty_1, punkty_2, punkty_3, punkty_4)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                self.runda_id,
+                self.name,
+                self.player_1,
+                self.player_2,
+                self.player_3,
+                self.player_4,
+                self.punkty_1,
+                self.punkty_2,
+                self.punkty_3,
+                self.punkty_4
+        ))
+
 
     @staticmethod
     def delete_table(table_id):

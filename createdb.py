@@ -52,6 +52,10 @@ class Database:
                 player_2 TEXT,
                 player_3 TEXT,
                 player_4 TEXT,
+                punkty_1 INTEGER DEFAULT 0,
+                punkty_2 INTEGER DEFAULT 0,
+                punkty_3 INTEGER DEFAULT 0,
+                punkty_4 INTEGER DEFAULT 0,
                 FOREIGN KEY (runda_id) REFERENCES rounds (id)
             )
         ''')
