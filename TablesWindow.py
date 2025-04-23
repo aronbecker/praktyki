@@ -122,7 +122,7 @@ class TablesWindow(QWidget):
                 table = Table(self.id_, f"Stolik {i + 1}", "brak", "brak", "brak", "brak")
                 table.add_table()
 
-            cursor.execute("SELECT * FROM tables WHERE runda_id = ?", (self.id_,))
+            cursor.execute("SELECT name, player_1, player_2, player_3, player_4 FROM tables WHERE runda_id = ?", (self.id_,))
             rows = cursor.fetchall()
 
         self.table.setRowCount(len(rows))
