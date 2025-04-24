@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
 from Runda import Runda
+from Turniej import Turniej
 from TablesWindow import TablesWindow
 from Table import Table
 
@@ -64,9 +65,8 @@ class RoundsWindow(QWidget):
         layout.addWidget(title)
         layout.addWidget(self.table)
         buttons_layout = QHBoxLayout()
-        refresh_button = self.create_button("🔄 Odśwież",self.load_rounds)
+        refresh_button = self.create_button("🔄",self.load_rounds)
         save_round_button = self.create_button("+ Dodaj Rundę",self.open_save_round)
-
         buttons_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         buttons_layout.addWidget(refresh_button)
         buttons_layout.addWidget(save_round_button)
@@ -126,7 +126,8 @@ class RoundsWindow(QWidget):
             self.table.setItem(row_counter, 1, QTableWidgetItem(str(tournament_id)))
             self.table.setItem(row_counter, 2, QTableWidgetItem(name))
             self.table.setItem(row_counter, 3, QTableWidgetItem(str(tables)))
-            table_button = self.create_button("Stoły",lambda _, id_=id_, tables=tables: self.show_tables(id_,tables))
+            # Przycisk do wyświetlenia okna stołów, przekazuje id rundy, i liczbę stołów do niej przypisane, które są niezbędne do wyświetlenia tego okna
+            table_button = self.create_button("Stoły",lambda _, round_id=id_, tables=tables: self.show_tables(round_id,tables))
             self.table.setCellWidget(row_counter, 4, table_button)
             delete_button = self.create_button("🗑️",lambda _, id_=id_: self.remove_round(id_))
             self.table.setCellWidget(row_counter, 5, delete_button)
@@ -144,10 +145,10 @@ class RoundsWindow(QWidget):
         self.save_round_window = SaveRoundWindow(self.tournaments_id)
         self.save_round_window.show()
 
-    def show_tables(self, id_, tables):
-        self.id_ = id_
+    def show_tables(self, round_id, tables):
+        self.round_id = round_id
         self.tables = tables
-        self.tables_window = TablesWindow(id_,tables)
+        self.tables_window = TablesWindow(round_id,tables)
         self.tables_window.show()
 
 

@@ -8,13 +8,11 @@ from PyQt5.QtCore import Qt
 from zawodnicy import Zawodnicy
 from zawodnicy_gui import AddPlayerWindow, ShowPlayersWindow
 from AddTournament import AddTournamentWindow
-from ShowTournaments import ShowTournamentsWindow
 from RoundsWindow import RoundsWindow, SaveRoundWindow
 from Turniej import Turniej
 from Runda import Runda
 from Table import Table
-from TablesWindow import TablesWindow
-from SetPointsWindow import SetPointsWindow
+from ShowTournaments import ShowTournamentsWindow, RoundsWindow, TablesWindow
 
 class TournamentManager(QWidget):
     def __init__(self):
