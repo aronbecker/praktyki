@@ -48,6 +48,16 @@ class Zawodnicy:
         conn.commit()
         conn.close()
 
+    def count_points(self, turniej_id):
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute("Select * FROM tables JOIN rounds ON tables.round_id = rounds.id WHERE round.turnament_id = ?", (turniej_id,))
+        
+        total_points = cursor.fetchone()[0]
+        conn.close()
+
+        return total_points if total_points is not None else 0
+
     def delete_zawodnik(self, zawodnik_id):
         conn = self.connect()
         cursor = conn.cursor()

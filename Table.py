@@ -8,6 +8,10 @@ class Table:
         self.player_2 = player_2
         self.player_3 = player_3
         self.player_4 = player_4
+        self.punkty_1 = 0
+        self.punkty_2 = 0
+        self.punkty_3 = 0
+        self.punkty_4 = 0
 
         # Inicjalizacja tabeli tylko jeśli nie istnieje (można to zrobić np. w głównym skrypcie)
         self.create_table()
