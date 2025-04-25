@@ -1,16 +1,16 @@
 import sys
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton,
-    QGraphicsDropShadowEffect, QFormLayout, QLineEdit, QDialog
+    QGraphicsDropShadowEffect, QFormLayout, QLineEdit, QDialog, QMessageBox
 )
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtCore import Qt
-
+from Table import Table
 class SetPointsWindow(QDialog):
-    def __init__(self, table_name, player_1, player_2, player_3, player_4,
+    def __init__(self, table_id, player_1, player_2, player_3, player_4,
                  punkty_1=0, punkty_2=0, punkty_3=0, punkty_4=0, parent=None):
         super().__init__(parent)
-        self.table_name = table_name
+        self.table_id = table_id
         self.player_1 = player_1
         self.player_2 = player_2
         self.player_3 = player_3
@@ -60,6 +60,8 @@ class SetPointsWindow(QDialog):
         layout.addRow(QLabel(f"{self.player_3}:"), self.points_input_3)
         layout.addRow(QLabel(f"{self.player_4}:"), self.points_input_4)
 
+        confirm_button = self.create_button("Zatwierdź", self.confirm_points)
+        layout.addWidget(confirm_button)
         self.setLayout(layout)
 
 
@@ -93,3 +95,15 @@ class SetPointsWindow(QDialog):
 
         button.clicked.connect(action)
         return button
+    def confirm_points(self):
+        try:
+            self.punkty_1 = int(self.points_input_1.text())
+            self.punkty_2 = int(self.points_input_2.text())
+            self.punkty_3 = int(self.points_input_3.text())
+            self.punkty_4 = int(self.points_input_4.text())
+            Table.set_points(self, self.table_id, self.punkty_1, self.punkty_2, self.punkty_3, self.punkty_4)
+            QMessageBox.information(self, "Sukces", "Punkty zostały pomyślnie zapisane.")
+            self.close()
+        except ValueError:
+            QMessageBox.warning(self, "Błąd", "Proszę wprowadzić poprawne liczby.")
+            return
