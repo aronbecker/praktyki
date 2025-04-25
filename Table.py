@@ -51,6 +51,22 @@ class Table:
                 self.punkty_4
         ))
 
+    def set_points(self, id, punkty_1, punkty_2, punkty_3, punkty_4):
+        self.id = id
+        self.punkty_1 = punkty_1
+        self.punkty_2 = punkty_2
+        self.punkty_3 = punkty_3
+        self.punkty_4 = punkty_4
+        connection = sqlite3.connect("turniej_db.sqlite")
+        cursor = connection.cursor()
+
+        cursor.execute('''
+            UPDATE tables
+            SET punkty_1 = ?, punkty_2 = ?, punkty_3 = ?, punkty_4 = ?
+            WHERE id = ?
+        ''', (self.punkty_1, self.punkty_2, self.punkty_3, self.punkty_4, self.id))
+        connection.commit()
+        connection.close()
 
     @staticmethod
     def delete_table(table_id):
