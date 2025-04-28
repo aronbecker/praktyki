@@ -49,12 +49,12 @@ class Zawodnicy:
         conn.close()
 
     def count_points(self, turniej_id):
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute("Select * FROM tables JOIN rounds ON tables.round_id = rounds.id WHERE round.turnament_id = ?", (turniej_id,))
+        connection = sqlite3.connect("turniej_db.sqlite")
+        cursor = connection.cursor()
+        cursor.execute("SELECT player_1,player_2,player_3,player_4,punkty_1,punkty_2,punkty_3,punkty_4 FROM tables JOIN rounds ON tables.runda_id = rounds.id WHERE rounds.tournament_id = ?", (turniej_id,))
         
-        total_points = cursor.fetchone()[0]
-        conn.close()
+        total_points = cursor.fetchall()
+        connection.close()
 
         return total_points if total_points is not None else 0
 

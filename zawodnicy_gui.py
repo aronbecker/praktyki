@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
+from zawodnicy import Zawodnicy
 
 
 class AddPlayerWindow(QWidget):
@@ -173,7 +174,7 @@ class ShowPlayersWindow(QWidget):
         buttons_layout = QHBoxLayout()
         refresh_button = self.create_button("🔄 Odśwież", self.load_players)
         save_button = self.create_button("💾 Zapisz punkty", self.save_points)
-        random_button = self.create_button("🎲 Losuj punkty", self.randomize_points)
+        random_button = self.create_button("Przelicz Punkty", self.points_operation)
         sort_asc_button = self.create_button("🔼 Rosnąco", lambda: self.sort_players_by_points(reverse=False))
         sort_desc_button = self.create_button("🔽 Malejąco", lambda: self.sort_players_by_points(reverse=True))
 
@@ -276,14 +277,24 @@ class ShowPlayersWindow(QWidget):
 
         QMessageBox.information(self, "Zaktualizowano", f"Punkty zaktualizowane dla {updated} zawodników.")
 
-    def randomize_points(self):
+    def points_operation(self):
         zawodnicy = self.zawodnicy.show_zawodnicy()
-        for z in zawodnicy:
-            losowe_punkty = random.randint(0, 1000)
-            self.zawodnicy.update_punkty(z[0], losowe_punkty)
+        point_data = self.zawodnicy.count_points(1)
+        for zawodnik in zawodnicy:
+            full_name = f"{zawodnik[1]} {zawodnik[2]}"
+            points_counter = 0
+            for point_data_row in point_data:
+                    if full_name == point_data_row[0]:
+                        points_counter += point_data_row[4]
+                    elif full_name == point_data_row[1]:
+                        points_counter += point_data_row[5]
+                    elif full_name == point_data_row[2]:
+                        points_counter += point_data_row[6]
+                    elif full_name == point_data_row[3]:
+                        points_counter += point_data_row[7]
+            self.zawodnicy.update_punkty(zawodnik[0], points_counter)
+        QMessageBox.information(self, "Sukces", "Punkty zostały przeliczone i zaktualizowane.")
         self.load_players()
-        QMessageBox.information(self, "Gotowe", "Punkty zostały wylosowane!")
-
     def delete_player(self, zawodnik_id):
         confirm = QMessageBox.question(self, "Potwierdzenie", "Czy na pewno chcesz usunąć tego zawodnika?",
                                        QMessageBox.Yes | QMessageBox.No)
